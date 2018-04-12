@@ -14,7 +14,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Roycedev\\Roycedb\\": "src/"
+            "Roycedev\\DbCli\\": "src/"
         }
     },
     "autoload-dev": {
@@ -28,7 +28,6 @@
                 "Roycedev\\DbCli\\DbCliServiceProvider"
             ],
             "aliases": {
-                "Roycedb": "Roycedev\\Roycedb\\Facades\\Roycedb"
             }
         }
     }
