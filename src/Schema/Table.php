@@ -41,17 +41,26 @@ class Table implements \IteratorAggregate, TableInterface
     /** @var string */
     private $engine = "";
 
+    /** @var string */
+    private $charset = "";
+
+    /** @var string */
+    private $collate = "";
+
+
     /**
      * @param $name        string name of the table (must be a valid SQL identifier)
      * @param $description string textual description of the table, which may
      *                     be included as a table comment in SQL or displayed to the user
      *                     in an admin interface.
      */
-    public function __construct($name, $description = '', $engine = '')
+    public function __construct($name, $description = '', $engine = '', $charset = '', $collate = '')
     {
         $this->name        = $name;
         $this->description = $description;
 	$this->engine 	   = $engine;
+	$this->charset     = $charset;
+	$this->collate     = $collate;
     }
 
 
@@ -81,6 +90,24 @@ class Table implements \IteratorAggregate, TableInterface
     public function getEngine()
     {
         return $this->engine;
+    }
+
+    /**
+     * get the character set of this table
+     * @return string charset 
+     */
+    public function getCharacterset()
+    {
+        return $this->charset;
+    }
+
+    /**
+     * get the engine of this table
+     * @return string engine
+     */
+    public function getCollation()
+    {
+        return $this->collate;
     }
 
     /**

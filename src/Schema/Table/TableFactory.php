@@ -20,8 +20,8 @@ class TableFactory implements TableFactoryInterface
      * @param string $description
      * @return TableInterface
      */
-    public function createTable($name, $description = '', $engine="")
+    public function createTable($name, $description = '', $engine="", $charset = "", $collate = "")
     {
-        return new Table($name, $description, $engine);
+        return new Table($name, $description, $engine, $charset, $collate);
     }
 }

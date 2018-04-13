@@ -97,9 +97,17 @@ class MakeDbTableCommand extends Command
 		$tableDef = "";
 
 		if ($table->getEngine() != "") {
-			echo "Engine is specified\n";
-			$tableDef = '              $table->engine = "' . $table->getEngine() . '";' . "\n";
+			$tableDef .= '              $table->engine = "' . $table->getEngine() . '";' . "\n";
 		}
+
+		if ($table->getCharacterset() != "") {
+                        $tableDef .= '              $table->charset = "' . $table->getCharacterset() . '";' . "\n";
+                }
+
+
+                if ($table->getCollation() != "") {
+                        $tableDef .= '              $table->collation = "' . $table->getCollation() . '";' . "\n";
+                }
 
 		$autoIncrementColumn = "";
 

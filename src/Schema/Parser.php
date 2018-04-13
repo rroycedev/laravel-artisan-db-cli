@@ -99,15 +99,32 @@ class Parser
 		$engine = $fields[1];
 	}
 
-	// character_set_database
+	// Character Set option
 
-	$charsetMatches = preg_match('/
+	$charset = "";
+
+	$charsetMatches = preg_match('/\s*(*:DEFAULT) CHARACTER SET\s*(*:=)\s*(.*)/', $matches[count($matches) - 1], $fields);
+
+	if ($charsetMatches) {
+		$charset = $fields[1];
+	}
+
+       // Collate option 
+
+        $collate = "";
+
+        $collateMatches = preg_match('/\s*(*:DEFAULT) COLLATE\s*(*:=)\s*(.*)/', $matches[count($matches) - 1], $fields);
+
+        if ($collateMatches) {
+                $collate = $fields[1];
+        }
+
         $name = Schema::unQuote($matches[1]);
         if (in_array($name, $this->ignoredTables)) {
             return null;
         }
 
-        $table = $this->tableFactory->createTable($name, $this->extractComment($matches[3]), $engine);
+        $table = $this->tableFactory->createTable($name, $this->extractComment($matches[3]), $engine, $charset, $collate);
 
         $this->parseColumns($table, $matches[2]);
         return $table;
