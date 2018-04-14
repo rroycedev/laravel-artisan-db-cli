@@ -7,7 +7,6 @@
 
 namespace Roycedev\DbCli\Schema\Table\Column;
 
-
 /**
  */
 class UnsignedTinyIntegerColumn extends TinyIntegerColumn
@@ -15,11 +14,10 @@ class UnsignedTinyIntegerColumn extends TinyIntegerColumn
     const BOOLEAN_SIZE = 'tiny';
     const BOOLEAN_DIGITS = 4;
 
-
-    public function __construct($name, $description = '', $allowNull = false, $unique = false, $digits = self::BOOLEAN_DIGITS)
+    public function __construct($name, $description = '', $allowNull = false, $unique = false, $charset = "", $collate = "", $digits = self::BOOLEAN_DIGITS)
     {
         $allowNull = false;
-        parent::__construct($name, $description, $allowNull, $unique, self::BOOLEAN_SIZE, $digits);
+        parent::__construct($name, $description, $allowNull, $unique, $charset, $collate, self::BOOLEAN_SIZE, $digits);
     }
 
     public function getDefaultValue()

@@ -18,10 +18,10 @@ class EnumerationColumn extends Column
     /** @var array string */
     private $values = [];
 
-    public function __construct($name, $description = '', $allowNull = false, $unique = false, $values = '')
+    public function __construct($name, $description = '', $allowNull = false, $unique = false, $charset = "", $collate = "", $values = '')
     {
         $this->parseValues($values);
-        parent::__construct($name, $description, $allowNull, $unique);
+        parent::__construct($name, $description, $allowNull, $unique, $charset, $collate);
     }
 
     /**

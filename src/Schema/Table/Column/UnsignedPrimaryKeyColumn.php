@@ -9,7 +9,6 @@ namespace Roycedev\DbCli\Schema\Table\Column;
 
 use Roycedev\DbCli\Schema\Table\Column;
 
-
 /**
  */
 class UnsignedPrimaryKeyColumn extends IntegerColumn
@@ -20,21 +19,18 @@ class UnsignedPrimaryKeyColumn extends IntegerColumn
     public function __construct(
         $name,
         $description = '',
-        $allowNull = false,
- 	$unique = false,
+        $allowNull = false, $unique = false, $charset = "", $collate = "",
         $size = self::DEFAULT_SIZE,
         $digits = self::DEFAULT_DIGITS
     ) {
         $allowNull = false;
-        parent::__construct($name, $description, $allowNull, $unique, $size, $digits);
+        parent::__construct($name, $description, $allowNull, $unique, $charset, $collate, $size, $digits);
     }
-
 
     public function getSQLType()
     {
         return parent::getSQLType() . ' auto_increment';
     }
-
 
     public function getSQLDefault()
     {

@@ -81,9 +81,11 @@ class Parser
     {
         $patterns = require 'Patterns.php';
 
+        $tablePatterns = $patterns["table"];
+
         // break the sql into first line, columns, last line.
 
-        if (!preg_match($patterns['createtable'], $tableSql, $matches)) {
+        if (!preg_match($tablePatterns['createtable'], $tableSql, $matches)) {
 
             if (!preg_match($patterns['createtableifnotexists'], $tableSql, $matches)) {
                 throw new \Exception('Invalid sql ' . $tableSql);
@@ -92,7 +94,7 @@ class Parser
 
         $engine = "";
 
-        $engineMatches = preg_match($patterns['engine'], $matches[count($matches) - 1], $fields);
+        $engineMatches = preg_match($tablePatterns['engine'], $matches[count($matches) - 1], $fields);
 
         if ($engineMatches) {
             $engine = $fields[1];
@@ -102,7 +104,7 @@ class Parser
 
         $charset = "";
 
-        $charsetMatches = preg_match($patterns['charset'], $matches[count($matches) - 1], $fields);
+        $charsetMatches = preg_match($tablePatterns['charset'], $matches[count($matches) - 1], $fields);
 
         if ($charsetMatches) {
             $charset = trim(str_replace("=", "", trim($fields[1])));
@@ -112,7 +114,7 @@ class Parser
 
         $collate = "";
 
-        $collateMatches = preg_match($patterns['collate'], $matches[count($matches) - 1], $fields);
+        $collateMatches = preg_match($tablePatterns['collate'], $matches[count($matches) - 1], $fields);
 
         if ($collateMatches) {
             $collate = trim(str_replace("=", "", trim($fields[1])));
@@ -140,33 +142,35 @@ class Parser
     public function parseColumns(TableInterface $table, $columnText)
     {
         // remove stuff we don't want to parse or don't currently care about
-        $columnText = preg_replace('/\s+default\s*\'\'/ims', '', $columnText);
-        $columnText = preg_replace('/\s+default\s*\'[-0:. ]+\'/ims', '', $columnText);
+        // $columnText = preg_replace('/\s+default\s*\'\'/ims', '', $columnText);
+        // $columnText = preg_replace('/\s+default\s*\'[-0:. ]+\'/ims', '', $columnText);
         // later: add charset stuff in here
 
-        $columns = preg_split('/[\r\n]+\s*/m', $columnText, -1, PREG_SPLIT_NO_EMPTY);
+        $patterns = require __DIR__ . '/Patterns.php';
+
+        $columns = preg_split($patterns['table']['objecttype'], $columnText, -1, PREG_SPLIT_NO_EMPTY);
 
         foreach ($columns as $column) {
             $column = $this->removeTrailingComma($column);
             $comment = $this->extractComment($column);
-            $column = preg_replace('/\s+comment\s*\'.*\'/im', '', $column); // snip off the comment
+            $column = preg_replace($patterns['table']['comment'], '', $column); // snip off the comment
 
-            if (preg_match('/^PRIMARY\s+KEY\s+\(\s*(.*)\s*\)/im', $column, $fields)) {
+            if (preg_match($patterns['table']['primarykey'], $column, $fields)) {
                 assert(strpos(',', $fields[1]) === false); // known limitation: single field primary key
                 $table->addIndex(new Index\Primary(Schema::unQuote(trim($fields[1]))));
-            } else if (preg_match('/^UNIQUE KEY\s+(.*)\s+\(\s*([^\s]+)(?:\s*,\s*([^\s]+))*\s*\)/im', $column, $fields)) {
+            } else if (preg_match($patterns['table']['uniquekey'], $column, $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
                 $name = array_shift($fields);
                 $table->addIndex(new Index\Unique($name, $fields));
-            } else if (preg_match('/^FULLTEXT KEY\s+(.*)\s+\(\s*([^\s]+)(?:\s*,\s*([^\s]+))*\s*\)/im', $column,
+            } else if (preg_match($patterns['table']['fulltext'], $column,
                 $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
                 $name = array_shift($fields);
                 $table->addIndex(new Index($name, $fields, 'fulltext'));
 //            } else if (preg_match("/FOREIGN KEY\s(.*)\(([^)]+)\)\s+REFERENCES+(.*)\(([^)]+)\)/", $column, $fields)) {
-            } else if (preg_match("/FOREIGN KEY\s(.*)\(([^)]+)\)\s+REFERENCES+(.*)\(([^)]+)\)+(.*)/", $column, $fields)) {
+            } else if (preg_match($patterns['table']['foreignkey'], $column, $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
 
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
@@ -195,14 +199,15 @@ class Parser
                     }
                 }
                 $table->addForeignKey(new ForeignKey($fkName, $fkColName, $parentTableName, $parentTableColName, $onDelete, $onUpdate));
-            } else if (preg_match('/^KEY\s+(.*)\s+\(\s*([^\s]+)(?:\s*,\s*([^\s]+))*\s*\)/im', $column, $fields)) {
+            } else if (preg_match($patterns['table']['key'], $column, $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
                 $name = array_shift($fields);
                 $table->addIndex(new Index($name, $fields));
             } else {
                 // ordinary field: name is first word (optionally quoted), data type is rest of string
-                preg_match('/^([^\s]+)\s+(.*)\s*/', $column, $matches);
+                preg_match($patterns['table']['column'], $column, $matches);
+
                 $name = Schema::unQuote($matches[1]);
                 $table->addColumn($this->columnFactory->create($name, $comment, $matches[2]));
             }

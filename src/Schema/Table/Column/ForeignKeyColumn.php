@@ -22,8 +22,7 @@ class ForeignKeyColumn extends IntegerColumn
     public function __construct(
         $name,
         $description = '',
-        $allowNull = false,
-	$unique = false,
+        $allowNull = false, $unique = false, $charset = "", $collate = "",
         $size = self::DEFAULT_SIZE,
         $digits = self::DEFAULT_DIGITS,
         $otherTable = ''
@@ -39,26 +38,25 @@ class ForeignKeyColumn extends IntegerColumn
             $description = self::RELATED_TEXT . ' ' . $otherTable;
         }
         $this->otherTable = $otherTable;
-        parent::__construct($name, $description, $allowNull, $unique, $size, $digits);
-    
+        parent::__construct($name, $description, $allowNull, $unique, $charset, $collate, $size, $digits);
+    }
 
     public function getDefaultValue()
     {
         return 0;
     }
 
-
 //    public function getSQLType()
-//    {
-//        return parent::getSQLType();
-//    }
-//
+    //    {
+    //        return parent::getSQLType();
+    //    }
+    //
 
 //    public function getSQLDefault()
-//    {
-//        return '';
-//    }
-//
+    //    {
+    //        return '';
+    //    }
+    //
 
     /**
      * @return string

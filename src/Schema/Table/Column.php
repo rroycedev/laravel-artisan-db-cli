@@ -29,24 +29,30 @@ abstract class Column
     /** @var bool */
     private $unique = false;
 
+    /** @var string */
+    private $charset = "";
+
+    /** @var string */
+    private $collate = "";
+
     const NOT_EQUAL = 0; // returned from compareTo()
     const EQUAL = 1; // returned from compareTo()
     const PARTIAL_MATCH = 2; // returned from compareTo()
-
 
     /**
      * @param string $name sql column name
      * @param string $description
      * @param bool   $allowNull
      */
-    public function __construct($name, $description = '', $allowNull = false, $unique = false)
+    public function __construct($name, $description = '', $allowNull = false, $unique = false, $charset = "", $collate = "")
     {
-        $this->name        = trim($name);
+        $this->name = trim($name);
         $this->description = trim($description);
-        $this->allowNull   = $allowNull;
-	$this->unique = $unique;
+        $this->allowNull = $allowNull;
+        $this->unique = $unique;
+        $this->charset = $charset;
+        $this->collate = $collate;
     }
-
 
     /**
      * @return string
@@ -55,7 +61,6 @@ abstract class Column
     {
         return $this->name;
     }
-
 
     /**
      * @return string
@@ -80,12 +85,26 @@ abstract class Column
     {
         return $this->unique;
     }
+    /**
+     * @return string
+     */
+    public function getCharset()
+    {
+        return $this->charset;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCollate()
+    {
+        return $this->collate;
+    }
 
     /**
      * @return string
      */
     abstract public function getSQLType();
-
 
     /**
      * @return string
@@ -94,7 +113,6 @@ abstract class Column
     {
         return ($this->allowNull ? ' null' : ' not null');
     }
-
 
     /**
      * @return string
@@ -121,13 +139,11 @@ abstract class Column
         if (!empty($default)) {
             $sql .= ' ' . $default;
         }
-        if ($this->description != '')
-        {
-            $sql .= ' comment ' . Schema::quoteDescription( $this->getDescription() );
+        if ($this->description != '') {
+            $sql .= ' comment ' . Schema::quoteDescription($this->getDescription());
         }
         return $sql;
     }
-
 
     /**
      * @param Column $other

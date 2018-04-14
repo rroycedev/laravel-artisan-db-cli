@@ -24,14 +24,13 @@ class UnsignedIntegerColumn extends Column
     public function __construct(
         $name,
         $description = '',
-        $allowNull = false,
-	$unique = false,
+        $allowNull = false, $unique = false, $charset = "", $collate = "",
         $size = '',
         $digits = self::DEFAULT_DIGITS
     ) {
         $this->size = $size;
         $this->digits = $digits;
-        parent::__construct($name, $description, $allowNull, $unique);
+        parent::__construct($name, $description, $allowNull, $unique, $charset, $collate);
     }
 
     public function getSQLType()
@@ -65,7 +64,8 @@ class UnsignedIntegerColumn extends Column
         return $this->digits;
     }
 
-    public function getUnsigned() {
-	return $this->unsigned;
+    public function getUnsigned()
+    {
+        return $this->unsigned;
     }
 }

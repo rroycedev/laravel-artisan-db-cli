@@ -26,16 +26,15 @@ class IntegerColumn extends Column
     public function __construct(
         $name,
         $description = '',
-        $allowNull = false,
- 	$unique = false,
+        $allowNull = false, $unique = false, $charset = "", $collate = "",
         $size = '',
         $digits = self::DEFAULT_DIGITS,
         $unsigned = ""
     ) {
         $this->size = $size;
         $this->digits = $digits;
-	$this->unsigned = $unsigned;
-        parent::__construct($name, $description, $allowNull, $unique);
+        $this->unsigned = $unsigned;
+        parent::__construct($name, $description, $allowNull, $unique, $charset, $collate);
     }
 
     public function getSQLType()
@@ -69,7 +68,8 @@ class IntegerColumn extends Column
         return $this->digits;
     }
 
-    public function getUnsigned() {
-	return $this->unsigned;
+    public function getUnsigned()
+    {
+        return $this->unsigned;
     }
 }

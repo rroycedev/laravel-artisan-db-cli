@@ -9,5 +9,5 @@ CREATE TABLE `notification_subscriptions` (
   UNIQUE KEY `notification_subscriptions_user_id_unique` (`user_id`),
   UNIQUE KEY `notification_subscriptions_device_token_unique` (`device_token`),
   KEY `notification_subscriptions_app_auth_token_index` (`app_auth_token`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=utf8_unicode_ci
 

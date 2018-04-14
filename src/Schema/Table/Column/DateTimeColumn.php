@@ -13,9 +13,9 @@ use Roycedev\DbCli\Schema\Table\Column;
  */
 class DateTimeColumn extends Column
 {
-    public function __construct($name, $description = '', $allowNull = false)
+    public function __construct($name, $description = '', $allowNull = false, $unique = false, $charset = "", $collate = "")
     {
-        parent::__construct($name, $description, $allowNull);
+        parent::__construct($name, $description, $allowNull, $unique, $charset, $collate);
     }
 
     public function getSQLType()

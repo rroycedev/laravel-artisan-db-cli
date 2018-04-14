@@ -25,26 +25,43 @@
  * 2: Regular expression</Arguments:>
  */
 
-if ($argc != 3) {
-    die("Syntax: php -f testregex.php <filename> <pattern_name>\n");
+if ($argc != 3 && $argc != 4) {
+    die("Syntax: php -f testregex.php <filename> <pattern_name> <is_split>\n");
 }
 
 $filename = $argv[1];
 $patternName = $argv[2];
 
+$isSplit = false;
+
+if ($argc == 4) {
+    if (strtoupper($argv[3]) == "Y" || strtoupper($argv[3]) == "1") {
+        $isSplit = true;
+    }
+}
 $patterns = require __DIR__ . '/../Schema/Patterns.php';
 
 $string = file_get_contents($filename);
 
-echo "Pattern: [" . $patterns[$patternName] . "]\n";
-echo "String : [" . $string . "]\n";
+$pattern = $patterns['test'][$patternName];
 
-$matched = preg_match($patterns[$patternName], $string, $matches);
+echo "Pattern: [$pattern]\n";
+echo "String : [$string]\n";
 
-if ($matched) {
-    echo "Matches:\n\n";
-    print_r($matches);
-    echo "\n";
+if ($isSplit) {
+    $columns = preg_split($pattern, $string, -1, PREG_SPLIT_NO_EMPTY);
+
+    echo "Columns: \n";
+
+    print_r($columns);
 } else {
-    echo "No matches found\n";
+    $matched = preg_match($pattern, $string, $matches);
+
+    if ($matched) {
+        echo "Matches:\n\n";
+        print_r($matches);
+        echo "\n";
+    } else {
+        echo "No matches found\n";
+    }
 }

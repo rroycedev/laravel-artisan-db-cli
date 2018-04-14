@@ -11,7 +11,7 @@ use Roycedev\DbCli\Schema\Table\Column;
 
 /**
  */
-class DateColumn extends Column
+class TimestampColumn extends Column
 {
     public function __construct($name, $description = '', $allowNull = false, $unique = false, $charset = "", $collate = "")
     {
@@ -20,12 +20,12 @@ class DateColumn extends Column
 
     public function getSQLType()
     {
-        return 'date';
+        return 'timestamp';
     }
 
     public function getDefaultValue()
     {
-        return '0000-00-00';
+        return '0000-00-00 00:00:00';
     }
 
     public function getSQLDefault()
