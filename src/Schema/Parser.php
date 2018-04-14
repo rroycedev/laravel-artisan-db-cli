@@ -7,14 +7,14 @@
 
 namespace Roycedev\DbCli\Schema;
 
+use Roycedev\DbCli\Schema;
+use Roycedev\DbCli\SchemaInterface;
 use Roycedev\DbCli\Schema\Table\ColumnFactory;
 use Roycedev\DbCli\Schema\Table\ColumnFactoryInterface;
 use Roycedev\DbCli\Schema\Table\Index;
 use Roycedev\DbCli\Schema\Table\Index\ForeignKey;
-use Roycedev\DbCli\Schema;
 use Roycedev\DbCli\Schema\Table\TableFactory;
 use Roycedev\DbCli\Schema\Table\TableFactoryInterface;
-use Roycedev\DbCli\SchemaInterface;
 
 /**
  * Class Parser
@@ -23,7 +23,7 @@ use Roycedev\DbCli\SchemaInterface;
 class Parser
 {
     /** @var array */
-    private $ignoredTables = [ ];
+    private $ignoredTables = [];
 
     /** @var ColumnFactoryInterface */
     private $columnFactory;
@@ -31,12 +31,11 @@ class Parser
     /** @var TableFactoryInterface */
     private $tableFactory;
 
-
     /**
      * @param array                $ignoreTables
      * @param ColumnFactoryInterface | null $columnFactory
      */
-    public function __construct($ignoreTables = [ ], ColumnFactoryInterface $columnFactory = null, TableFactoryInterface $tableFactory = null)
+    public function __construct($ignoreTables = [], ColumnFactoryInterface $columnFactory = null, TableFactoryInterface $tableFactory = null)
     {
         $this->ignoredTables = $ignoreTables;
         if (empty($columnFactory)) {
@@ -48,7 +47,6 @@ class Parser
         }
         $this->tableFactory = $tableFactory;
     }
-
 
     /**
      * Schema is a parameter so you can parse several snippets of sql incrementally
@@ -72,7 +70,6 @@ class Parser
         }
     }
 
-
     /**
      * assumes each column is on its own line, with the CREATE TABLE and
      * table type info also on their own lines, as returned by MySQL
@@ -82,41 +79,43 @@ class Parser
      */
     public function parseTable($tableSql)
     {
-        // break the sql into first line, columns, last line.
-        //if (!preg_match( '/\s*create\s+table\s+([^\s+]*)\s+\((.*)\n\s*\)\s*([^\)]*)\s*$/ims', $tableSql, $matches ))
-        if (!preg_match('/\s*create\s+table\s+([^\s+]*)\s+\((.*)\s*\n\s*\)\s*(.*)\s*$/ims', $tableSql, $matches)) {
+        $patterns = require 'Patterns.php';
 
-	    if (!preg_match('/\s*create\s+table\s+if\s+not\s+exists\s+([^\s+]*)\s+\((.*)\s*\n\s*\)\s*(.*)\s*$/ims', $tableSql, $matches)) {
-	            throw new \Exception('Invalid sql ' . $tableSql);
-	    }
+        // break the sql into first line, columns, last line.
+
+        if (!preg_match($patterns['createtable'], $tableSql, $matches)) {
+
+            if (!preg_match($patterns['createtableifnotexists'], $tableSql, $matches)) {
+                throw new \Exception('Invalid sql ' . $tableSql);
+            }
         }
 
-	$engine = "";
+        $engine = "";
 
-	$engineMatches = preg_match('/ENGINE\s*=\s*([^\s]+)/', $matches[count($matches) - 1], $fields);
+        $engineMatches = preg_match($patterns['engine'], $matches[count($matches) - 1], $fields);
 
-	if ($engineMatches) {
-		$engine = $fields[1];
-	}
+        if ($engineMatches) {
+            $engine = $fields[1];
+        }
 
-	// Character Set option
+        // Character Set option
 
-	$charset = "";
+        $charset = "";
 
-	$charsetMatches = preg_match('/\s*(*:DEFAULT) CHARACTER SET\s*(*:=)\s*(.*)/', $matches[count($matches) - 1], $fields);
+        $charsetMatches = preg_match($patterns['charset'], $matches[count($matches) - 1], $fields);
 
-	if ($charsetMatches) {
-		$charset = $fields[1];
-	}
+        if ($charsetMatches) {
+            $charset = trim(str_replace("=", "", trim($fields[1])));
+        }
 
-       // Collate option 
+        // Collate option
 
         $collate = "";
 
-        $collateMatches = preg_match('/\s*(*:DEFAULT) COLLATE\s*(*:=)\s*(.*)/', $matches[count($matches) - 1], $fields);
+        $collateMatches = preg_match($patterns['collate'], $matches[count($matches) - 1], $fields);
 
         if ($collateMatches) {
-                $collate = $fields[1];
+            $collate = trim(str_replace("=", "", trim($fields[1])));
         }
 
         $name = Schema::unQuote($matches[1]);
@@ -129,7 +128,6 @@ class Parser
         $this->parseColumns($table, $matches[2]);
         return $table;
     }
-
 
     /**
      *
@@ -149,9 +147,9 @@ class Parser
         $columns = preg_split('/[\r\n]+\s*/m', $columnText, -1, PREG_SPLIT_NO_EMPTY);
 
         foreach ($columns as $column) {
-            $column  = $this->removeTrailingComma($column);
+            $column = $this->removeTrailingComma($column);
             $comment = $this->extractComment($column);
-            $column  = preg_replace('/\s+comment\s*\'.*\'/im', '', $column); // snip off the comment
+            $column = preg_replace('/\s+comment\s*\'.*\'/im', '', $column); // snip off the comment
 
             if (preg_match('/^PRIMARY\s+KEY\s+\(\s*(.*)\s*\)/im', $column, $fields)) {
                 assert(strpos(',', $fields[1]) === false); // known limitation: single field primary key
@@ -159,13 +157,13 @@ class Parser
             } else if (preg_match('/^UNIQUE KEY\s+(.*)\s+\(\s*([^\s]+)(?:\s*,\s*([^\s]+))*\s*\)/im', $column, $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
-                $name   = array_shift($fields);
+                $name = array_shift($fields);
                 $table->addIndex(new Index\Unique($name, $fields));
             } else if (preg_match('/^FULLTEXT KEY\s+(.*)\s+\(\s*([^\s]+)(?:\s*,\s*([^\s]+))*\s*\)/im', $column,
                 $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
-                $name   = array_shift($fields);
+                $name = array_shift($fields);
                 $table->addIndex(new Index($name, $fields, 'fulltext'));
 //            } else if (preg_match("/FOREIGN KEY\s(.*)\(([^)]+)\)\s+REFERENCES+(.*)\(([^)]+)\)/", $column, $fields)) {
             } else if (preg_match("/FOREIGN KEY\s(.*)\(([^)]+)\)\s+REFERENCES+(.*)\(([^)]+)\)+(.*)/", $column, $fields)) {
@@ -173,34 +171,34 @@ class Parser
 
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
 
-		$fkName = array_shift($fields);
-		$fkColName = array_shift($fields);
-		$parentTableName = array_shift($fields);
-		$parentTableColName = array_shift($fields); 
+                $fkName = array_shift($fields);
+                $fkColName = array_shift($fields);
+                $parentTableName = array_shift($fields);
+                $parentTableColName = array_shift($fields);
 
-		$onDelete = "";
-		$onUpdate = "";
+                $onDelete = "";
+                $onUpdate = "";
 
-		if (count($fields) > 0) {
-			$clause = $fields[0];
+                if (count($fields) > 0) {
+                    $clause = $fields[0];
 
-                        $matched = preg_match('/ON DELETE\s\\b(\\w+)+\\b/', $clause, $clauseFields);
+                    $matched = preg_match('/ON DELETE\s\\b(\\w+)+\\b/', $clause, $clauseFields);
 
-			if ($matched) {
-				$onDelete = strtolower($clauseFields[1]);
-			}
+                    if ($matched) {
+                        $onDelete = strtolower($clauseFields[1]);
+                    }
 
-                        $matched = preg_match('/ON UPDATE\s\\b(\\w+)+\\b/', $clause, $clauseFields);
+                    $matched = preg_match('/ON UPDATE\s\\b(\\w+)+\\b/', $clause, $clauseFields);
 
-                        if ($matched) {
-                                $onUpdate = strtolower($clauseFields[1]);
-                        }
-		}
-		$table->addForeignKey(new ForeignKey($fkName, $fkColName, $parentTableName, $parentTableColName, $onDelete, $onUpdate));
+                    if ($matched) {
+                        $onUpdate = strtolower($clauseFields[1]);
+                    }
+                }
+                $table->addForeignKey(new ForeignKey($fkName, $fkColName, $parentTableName, $parentTableColName, $onDelete, $onUpdate));
             } else if (preg_match('/^KEY\s+(.*)\s+\(\s*([^\s]+)(?:\s*,\s*([^\s]+))*\s*\)/im', $column, $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
-                $name   = array_shift($fields);
+                $name = array_shift($fields);
                 $table->addIndex(new Index($name, $fields));
             } else {
                 // ordinary field: name is first word (optionally quoted), data type is rest of string
@@ -213,7 +211,6 @@ class Parser
         return $table;
     }
 
-
     /**
      * snip off optional trailing comma and white space
      * @param $sql string to trim
@@ -223,7 +220,6 @@ class Parser
     {
         return trim($sql, ' ,');
     }
-
 
     /**
      * assumes the comment is single quote enclosed at the end of the
