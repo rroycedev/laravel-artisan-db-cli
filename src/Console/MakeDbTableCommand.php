@@ -14,7 +14,7 @@ class MakeDbTableCommand extends Command
      * @var string
      */
     protected $signature = 'dbcli:maketable {tablename? : The name of the table to create.} {migrationname? : The name of the database migration}
-            {--fromddl=ask : Create database migration from DDL.  If specifiy with no filename, user will be prompted for filename.}';
+            {--fromddl= : Create database migration from DDL.  If specifiy with no filename, user will be prompted for filename.}';
 
     /**
      * The console command description.
@@ -22,6 +22,80 @@ class MakeDbTableCommand extends Command
      * @var string
      */
     protected $description = 'Creates a database migration script and model for a database table';
+
+    /*
+    Here is the mapping from MySQL 5.7 data types to Laravel database migration class methods:
+
+    BIT[(length)]                                               $table->tinyInteger()
+    TINYINT[(length)] [UNSIGNED] [ZEROFILL]                     $table->tinyInteger()
+    SMALLINT[(length)] [UNSIGNED] [ZEROFILL]                    $table->smallInteger()
+    MEDIUMINT[(length)] [UNSIGNED] [ZEROFILL]                   $table->mediumInteger()
+    INT[(length)] [UNSIGNED] [ZEROFILL]                         $table->integer()
+    INTEGER[(length)] [UNSIGNED] [ZEROFILL]                     $table->integer()
+    BIGINT[(length)] [UNSIGNED] [ZEROFILL]                      $table->bigInteger()
+    REAL[(length,decimals)] [UNSIGNED] [ZEROFILL]               $table->decimal()
+    DOUBLE[(length,decimals)] [UNSIGNED] [ZEROFILL]             $table->double()
+    FLOAT[(length,decimals)] [UNSIGNED] [ZEROFILL]              $table->float()
+    DECIMAL[(length[,decimals])] [UNSIGNED] [ZEROFILL]          $table->decimal()
+    NUMERIC[(length[,decimals])] [UNSIGNED] [ZEROFILL]          $table->decimal()
+    DATE                                                        $table->date()
+    TIME[(fsp)]                                                 $table->time()
+    TIMESTAMP[(fsp)]                                            $table->timestamp()
+    DATETIME[(fsp)]                                             $table->dateTime()
+    YEAR                                                        $table->year()
+    CHAR[(length)]                                              $table->char()
+    VARCHAR(length)                                             $table->varchar()
+    BINARY[(length)]                                            $table->binary()
+    VARBINARY(length)                                           $table->binary()
+    TINYBLOB                                                    $table->binary()
+    BLOB[(length)]                                              $table->binary()
+    MEDIUMBLOB                                                  $table->binary()
+    LONGBLOB                                                    $table->binary()
+    TINYTEXT                                                    $table->mediumText()
+    TEXT[(length)]                                              $table->text()
+    MEDIUMTEXT                                                  $table->mediumText()
+    LONGTEXT                                                    $table->longText()
+    ENUM(value1,value2,value3,...)                              $table->enum()
+    JSON                                                        $table->json()
+
+     */
+
+    /**
+     * The possible column data types a user can choose from
+     *
+     * @var string array
+     */
+    private $columnDataTypeMapping = [
+        'bit' => 'BitDbMigrationColumnFormatter',
+        'tinyint' => 'TinyIntDbMigrationColumnFormatter',
+        'smallint' => 'SmallIntDbMigrationColumnFormatter',
+        'mediumint' => 'MediumIntDbMigrationColumnFormatter',
+        'int' => 'IntDbMigrationColumnFormatter',
+        'bigint' => 'BigIntDbMigrationColumnFormatter',
+        'real' => 'DecimalDbMigrationColumnFormatter',
+        'double' => 'DoubleDbMigrationColumnFormatter',
+        'float' => 'FloatDbMigrationColumnFormatter',
+        'decimal' => 'DecimalDbMigrationColumnFormatter',
+        'numeric' => 'DecimalDbMigrationColumnFormatter',
+        'date' => 'DateDbMigrationColumnFormatter',
+        'time' => 'TimeDbMigrationColumnFormatter',
+        'datetime' => 'DateTimeDbMigrationColumnFormatter',
+        'year' => 'YearDbMigrationColumnFormatter',
+        'char' => 'CharDbMigrationColumnFormatter',
+        'varchar' => 'VarcharDbMigrationColumnFormatter',
+        'binary' => 'BinaryDbMigrationColumnFormatter',
+        'varbinary' => 'BinaryDbMigrationColumnFormatter',
+        'tinyblob' => 'BinaryDbMigrationColumnFormatter',
+        'blob' => 'BinaryDbMigrationColumnFormatter',
+        'mediumblob' => 'BinaryDbMigrationColumnFormatter',
+        'longblob' => 'BinaryDbMigrationColumnFormatter',
+        'tinytext' => 'TinyTextDbMigrationColumnFormatter',
+        'text' => 'TextDbMigrationColumnFormatter',
+        'mediumtext' => 'MediumTextDbMigrationColumnFormatter',
+        'longtext' => 'LongTextDbMigrationColumnFormatter',
+        'enum' => 'EnumDbMigrationColumnFormatter',
+        'json' => 'JsonDbMigrationColumnFormatter',
+    ];
 
     /**
      * Create a new command instance.
@@ -42,9 +116,7 @@ class MakeDbTableCommand extends Command
      */
     public function handle()
     {
-        $this->info("dbcli:maketable: Starting....\n");
-
-        $tableName = $this->argument('tablename');
+        $tableName = trim($this->argument('tablename'));
 
         if ($tableName == "") {
             $this->info("You must specify a table name");
@@ -69,6 +141,362 @@ class MakeDbTableCommand extends Command
 
     private function handleInteractive($tableName, $migrationName)
     {
+        $this->info("In order to generate a database migration script for for table '" . $tableName . "', you will be asked to enter information for each column\n");
+
+        $columns = $this->getColumnsFromInput();
+
+        $indexes = array();
+
+        if ($this->confirm('Are there any indexes to define', true)) {
+            $indexes = $this->getIndexesFromInput($columns);
+        }
+
+        $foreignKeys = array();
+
+        if ($this->confirm('Are there any foreign keys to define', true)) {
+            $foreignKeys = $this->getForeignKeysFromInput($columns);
+        }
+
+        $tableComment = $this->ask('Table comment');
+
+        $this->generateMigration($tableName, $migrationName, $columns, $indexes, $foreignKeys, $tableComment);
+    }
+
+    private function generateMigration($tableName, $migrationName, $columns, $indexes, $foreignKeys, $tableComment)
+    {
+        $tableDef = "";
+
+        foreach ($columns as $column) {
+            $formatterClassName = "Roycedev\\DbCli\\Console\\Formatters\\" . $this->columnDataTypeMapping[$column->dataType];
+
+            echo "Class name: $formatterClassName \n";
+
+            $formatter = new $formatterClassName($column);
+
+            $tableDef .= $formatter->toText() . "\n";
+        }
+
+        $createStubFile = __DIR__ . "/stubs/create.stub";
+
+        $createStub = file_get_contents($createStubFile);
+
+        $outputText = str_replace("DummyTable", $tableName, $createStub);
+
+        $outputText = str_replace("[[TABLEDEF]]", $tableDef, $outputText);
+
+        $outputText = str_replace("DummyClass", $migrationName, $outputText);
+
+        $filename = base_path() . "/database/migrations/" . date("Y_m_d_His") . "_$migrationName" . ".php";
+
+        file_put_contents($filename, $outputText);
+
+        print_r($outputText);
+
+        $this->info("Migration script written to $filename");
+
+    }
+
+    private function getColumnsFromInput()
+    {
+        $columns = array();
+
+        while (true) {
+            $column = $this->getColumnFromInput(count($columns) + 1);
+            if (!$column) {
+                break;
+            }
+
+            $columns[] = $column;
+
+            if (!$this->confirm("More columns", true)) {
+                break;
+            }
+        }
+
+        return $columns;
+    }
+
+    public function getIndexesFromInput($columns)
+    {
+        $indexes = array();
+
+        while (true) {
+            $index = $this->getIndexFromInput(count($indexes) + 1, $columns);
+            if (!$index) {
+                break;
+            }
+
+            $indexes[] = $index;
+
+            if (!$this->confirm("More indexes", true)) {
+                break;
+            }
+        }
+
+        return $indexes;
+    }
+
+    public function getForeignKeysFromInput($columns)
+    {
+        $fks = array();
+
+        while (true) {
+            $fk = $this->getForeignKeyFromInput(count($fks) + 1, $columns);
+            if (!$fk) {
+                break;
+            }
+
+            $fks[] = $fk;
+
+            if (!$this->confirm("More foreign keys", true)) {
+                break;
+            }
+        }
+
+        return $fks;
+    }
+
+    private function getForeignKeyFromInput($fkNum, $columns)
+    {
+        $this->info("Please enter the information for foreign key $fkNum:\n");
+
+        while (true) {
+            $fkName = $this->ask('Foreign Key Name');
+
+            if ($fkName != "") {
+                break;
+            }
+        }
+
+        $fkColumns = array();
+
+        $fkColNames = array();
+
+        foreach ($columns as $column) {
+            $fkColNames[] = $column->colName;
+        }
+
+        while (true) {
+            $fkColName = $this->choice("Foreign Key Column " . (count($fkColumns) + 1), $fkColNames);
+
+            $fkColumns[] = $fkColName;
+
+            if (!$this->confirm("More foreign key columns", false)) {
+                break;
+            }
+        }
+
+        while (true) {
+            $parentTableName = $this->ask('References table name');
+
+            if ($parentTableName != "") {
+                break;
+            }
+        }
+
+        $refColumns = array();
+
+        while (true) {
+            $refColName = $this->ask("References table column " . (count($refColumns) + 1));
+
+            $refColumns[] = $refColName;
+
+            if (!$this->confirm("More references table columns", false)) {
+                break;
+            }
+        }
+
+        return new ForeignKey($fkName, $fkColumns, $parentTableName, $refColumns);
+    }
+
+    private function getIndexFromInput($indexNum, $columns)
+    {
+        $this->info("Please enter the information for index $indexNum:\n");
+
+        while (true) {
+            $indexName = $this->ask('Index Name');
+
+            if ($indexName != "") {
+                break;
+            }
+        }
+
+        $indexColumns = array();
+
+        $indexColNames = array();
+
+        foreach ($columns as $column) {
+            $indexColNames[] = $column->colName;
+        }
+
+        while (true) {
+            $indexColName = $this->choice("Index Column " . (count($indexColumns) + 1), $indexColNames);
+
+            $indexColumns[] = $indexColName;
+
+            if (!$this->confirm("More index columns", true)) {
+                break;
+            }
+        }
+
+        $unique = false;
+
+        if ($this->confirm('Unique', false)) {
+            $unique = true;
+        }
+
+        return new Index($indexName, $indexColumns, $unique);
+    }
+
+    private function getColumnFromInput($colNum)
+    {
+        $length = 0;
+        $decimalPlaces = 0;
+        $unsigned = false;
+        $charset = "";
+        $collation = "";
+        $autoIncrement = false;
+
+        $this->info("Please enter the information for column $colNum:\n");
+
+        while (true) {
+            $colName = $this->ask('Column Name');
+
+            if ($colName != "") {
+                break;
+            }
+        }
+
+        $dataTypes = array();
+
+        foreach ($this->columnDataTypeMapping as $dataType => $formatterClassName) {
+            $dataTypes[] = $dataType;
+        }
+
+        $dataType = $this->choice('Data Type', $dataTypes, null);
+
+        if ($this->dataTypeSupportsLength($dataType)) {
+            $length = $this->ask('Length');
+        }
+
+        if ($this->dataTypeSupportsDecimalPlaces($dataType)) {
+            $decimalPlaces = $this->ask('Decimal places');
+        }
+
+        if ($this->dataTypeSupportsUnsigned($dataType)) {
+            $unsigned = $this->confirm('Unsigned', false);
+        }
+
+        $allowNulls = $this->confirm('Allow NULL values', true);
+
+        if ($this->dataTypeSupportsCharset($dataType)) {
+            $charset = $this->ask('Character set [leave empty for default character set]');
+            $collation = $this->ask('Collation [leave empty for default character set]');
+        }
+
+        if ($this->dataTypeSupportsAutoIncrement($dataType)) {
+            $autoIncrement = $this->confirm('Auto Increment', false);
+
+            if ($autoIncrement) { //  Set allow nulls to false if auto increment
+                $allowNulls = false;
+            }
+        }
+
+        $defaultValue = $this->ask('Default value');
+
+        $comment = $this->ask('Comment');
+
+        return new Column($colName, $dataType, $length, $decimalPlaces, $unsigned, $allowNulls, $charset, $collation, $autoIncrement, $defaultValue, $comment);
+    }
+
+    private function dataTypeSupportsAutoIncrement($dataType)
+    {
+        switch ($dataType) {
+            case 'tinyint':
+            case 'smallint':
+            case 'mediumint':
+            case 'int':
+            case 'bigint':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private function dataTypeSupportsLength($dataType)
+    {
+        echo "Checking data type [$dataType] for support of length\n";
+
+        switch ($dataType) {
+            case 'bit':
+            case 'tinyint':
+            case 'smallint':
+            case 'mediumint':
+            case 'int':
+            case 'bigint':
+            case 'real':
+            case 'float':
+            case 'double':
+            case 'decimal':
+            case 'numeric':
+            case 'char':
+            case 'varchar':
+            case 'binary':
+            case 'varbinary':
+            case 'blob':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private function dataTypeSupportsDecimalPlaces($dataType)
+    {
+        switch ($dataType) {
+            case 'real':
+            case 'float':
+            case 'double':
+            case 'decimal':
+            case 'numeric':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private function dataTypeSupportsUnsigned($dataType)
+    {
+        switch ($dataType) {
+            case 'tinyint':
+            case 'smallint':
+            case 'mediumint':
+            case 'int':
+            case 'bigint':
+            case 'real':
+            case 'double':
+            case 'float':
+            case 'decimal':
+            case 'numeric':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private function dataTypeSupportsCharset($dataType)
+    {
+        switch ($dataType) {
+            case 'char':
+            case 'varchar':
+            case 'tinytext':
+            case 'mediumtext':
+            case 'text':
+            case 'longtext':
+            case 'enum':
+                return true;
+            default:
+                return false;
+        }
     }
 
     private function handleFromDDL($tableName, $migrationName, $ddlFilename)
@@ -339,4 +767,12 @@ class MakeDbTableCommand extends Command
     {
     }
 
+    protected function getOptions()
+    {
+        echo "Get options\n";
+
+        return [
+            ['fromddl', 'ask', InputOption::VALUE_REQUIRED, 'The file that contains the create DDL.'],
+        ];
+    }
 }
