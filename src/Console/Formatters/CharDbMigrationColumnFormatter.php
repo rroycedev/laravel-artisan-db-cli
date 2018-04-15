@@ -2,7 +2,7 @@
 
 namespace Roycedev\DbCli\Console\Formatters;
 
-class VarcharDbMigrationColumnFormatter extends StringDbMigrationColumnFormatter
+class CharDbMigrationColumnFormatter extends StringDbMigrationColumnFormatter
 {
     protected $typeMethodName = "char";
 }
