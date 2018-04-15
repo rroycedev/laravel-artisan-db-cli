@@ -2,7 +2,7 @@
 
 namespace Roycedev\DbCli\Console\Formatters;
 
-class DateDbMigrationColumnFormatter extends BasicDbMigrationColumnFormatter
+class YearDbMigrationColumnFormatter extends BasicDbMigrationColumnFormatter
 {
     protected $typeMethodName = "year";
 }
