@@ -11,7 +11,7 @@ class TextDbMigrationColumnFormatter extends DbMigrationColumnFormatter
 
     public function toText()
     {
-        $txt = '            $table->' . $this->typeMethodName . '(\'' . $this->column->colName+'\'';
+        $txt = '            $table->' . $this->typeMethodName . '(\'' . $this->column->colName . '\'';
 
         if ($this->wantLength) {
             $txt .= ', ' . $this->column->length;
