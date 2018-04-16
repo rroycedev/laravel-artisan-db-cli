@@ -6,21 +6,21 @@ use Illuminate\Console\Command;
 use Roycedev\DbCli\Schema;
 use Roycedev\DbCli\Schema\Parser;
 
-class ImportSchemaObjectsCommand extends Command
+class MakeMultipleTablesCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'dbcli:importschema filename? : The name of the file that contains the DDL to convert to a database migration script.} {migrationname? : The name of the database migration}';
+    protected $signature = 'dbcli:makemultipletables filename? : The name of the file that contains the DDL to convert to a database migration script.} {migrationname? : The name of the database migration}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Creates database migration scripts from a DDL script';
+    protected $description = 'Creates database migration scripts from a DDL script that contains multiple CREATE TABLE DDL';
 
     /*
     Here is the mapping from MySQL 5.7 data types to Laravel database migration class methods:
