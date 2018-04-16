@@ -4,5 +4,5 @@ namespace Roycedev\DbCli\Console\Formatters;
 
 class VarcharDbMigrationColumnFormatter extends StringDbMigrationColumnFormatter
 {
-    protected $typeMethodName = "varchar";
+    protected $typeMethodName = "string";
 }

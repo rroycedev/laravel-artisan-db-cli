@@ -16,4 +16,36 @@ class ForeignKey
         $this->parentTableName = $parentTableName;
         $this->parentTableColumns = $parentTableColumns;
     }
+
+
+    public function toText()
+    {
+	$fkColumnList = $this->columnArrayToText($this->fkColumns);
+	$parentTableColList = $this->columnArrayToText($this->parentTableColumns);
+
+        return '            $table->foreign(' . $fkColumnList . ', \'' . $this->fkName . '\')->references(' . 
+		$parentTableColList . ')->on(\'' . $this->parentTableName . '\');';
+    }
+
+    private function columnArrayToText($columns) 
+    {
+        $columnList = '[';
+
+        $firstTime = true;
+
+        foreach ($columns as $colName) {
+                if (!$firstTime) {
+                        $columnList .= ", ";
+                }
+                else {
+                        $firstTime = false;
+                }
+
+                $columnList .= "'" . $colName . "'";
+        }
+
+        $columnList .= "]";
+
+	return $columnList;
+    }
 }

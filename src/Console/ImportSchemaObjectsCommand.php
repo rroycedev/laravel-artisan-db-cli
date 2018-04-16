@@ -6,22 +6,21 @@ use Illuminate\Console\Command;
 use Roycedev\DbCli\Schema;
 use Roycedev\DbCli\Schema\Parser;
 
-class MakeDbTableCommand extends Command
+class ImportSchemaObjectsCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'dbcli:maketable {tablename? : The name of the table to create.} {migrationname? : The name of the database migration}
-            {--fromddl= : Create database migration from DDL.  If specifiy with no filename, user will be prompted for filename.}';
+    protected $signature = 'dbcli:importschema filename? : The name of the file that contains the DDL to convert to a database migration script.} {migrationname? : The name of the database migration}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Creates a database migration script and model for a database table';
+    protected $description = 'Creates database migration scripts from a DDL script';
 
     /*
     Here is the mapping from MySQL 5.7 data types to Laravel database migration class methods:
@@ -116,10 +115,10 @@ class MakeDbTableCommand extends Command
      */
     public function handle()
     {
-        $tableName = trim($this->argument('tablename'));
+        $fromDDLFilename = trim($this->argument('filename'));
 
         if ($tableName == "") {
-            $this->info("You must specify a table name");
+            $this->info("You must specify a filename");
             return;
         }
 
@@ -130,287 +129,58 @@ class MakeDbTableCommand extends Command
             return;
         }
 
-        $fromDDLFilename = $this->option('fromddl');
-
-        if ($fromDDLFilename == "") {
-            $this->handleInteractive($tableName, $migrationName);
-        } else {
-            $this->handleFromDDL($tableName, $migrationName, $fromDDLFilename);
-        }
+        $this->handleFromDDL($migrationName, $fromDDLFilename);
     }
 
-    private function handleInteractive($tableName, $migrationName)
-    {
-        $this->info("In order to generate a database migration script for for table '" . $tableName . "', you will be asked to enter information for each column\n");
+    private function getCreateDDLFromFile($ddlFilename) {
+	$lines = file($ddlFilename);
 
-        $columns = $this->getColumnsFromInput();
+	$i = 0;
 
-        $indexes = array();
+	$createDDLStatements = array();
 
-        if ($this->confirm('Are there any indexes to define', true)) {
-            $indexes = $this->getIndexesFromInput($columns);
-        }
+	while (true) {
+        	if ($i > count($lines) - 1) {
+                	break;
+	        }
 
-        $foreignKeys = array();
+	        $line = $lines[$i];
 
-        if ($this->confirm('Are there any foreign keys to define', true)) {
-            $foreignKeys = $this->getForeignKeysFromInput($columns);
-        }
+        	$thisLine = trim($line);
 
-        $tableComment = $this->ask('Table comment');
+	        if ($thisLine  == "") {
+        	        $i++;
+                	continue;
+	        }
 
-        $this->generateMigration($tableName, $migrationName, $columns, $indexes, $foreignKeys, $tableComment);
-    }
+        	if (substr($thisLine, 0, 2) == "--" || substr($thisLine, 0, 2) == "/*") {
+                	$i++;
+	                continue;
+        	}
 
-    private function generateMigration($tableName, $migrationName, $columns, $indexes, $foreignKeys, $tableComment)
-    {
-        $tableDef = "";
+	        if (strtoupper(substr($thisLine, 0, 13)) != "CREATE TABLE ") {
+        	        $i++;
+                	continue;
+	        }
 
-        foreach ($columns as $column) {
-            $formatterClassName = "Roycedev\\DbCli\\Console\\Formatters\\" . $this->columnDataTypeMapping[$column->dataType];
+        	$createTable = $thisLine;
 
-            echo "Class name: $formatterClassName \n";
+	        while (true) {
+        	        $i++;
 
-            $formatter = new $formatterClassName($column);
+                	$thisLine = trim($lines[$i]);
 
-            $tableDef .= $formatter->toText() . "\n";
-        }
+	                $createTable .= $thisLine . "\n";
 
-	foreach ($indexes as $index) {
-		$tableDef .= $index->toText() . "\n";
+        	        if (stripos($thisLine, ";") !== FALSE) {
+                	        break;
+	                }
+        	}
+
+		$createDDLStatements[] = $createTable;
 	}
 
-	foreach ($foreignKeys as $fk) {
-		$tableDef .= $fk->toText() . "\n";
-	}
-
-        $createStubFile = __DIR__ . "/stubs/create.stub";
-
-        $createStub = file_get_contents($createStubFile);
-
-        $outputText = str_replace("DummyTable", $tableName, $createStub);
-
-        $outputText = str_replace("[[TABLEDEF]]", $tableDef, $outputText);
-
-        $outputText = str_replace("DummyClass", $migrationName, $outputText);
-
-        $filename = base_path() . "/database/migrations/" . date("Y_m_d_His") . "_$migrationName" . ".php";
-
-        file_put_contents($filename, $outputText);
-
-        print_r($outputText);
-
-        $this->info("Migration script written to $filename");
-
-    }
-
-    private function getColumnsFromInput()
-    {
-        $columns = array();
-
-        while (true) {
-            $column = $this->getColumnFromInput(count($columns) + 1);
-            if (!$column) {
-                break;
-            }
-
-            $columns[] = $column;
-
-            if (!$this->confirm("More columns", true)) {
-                break;
-            }
-        }
-
-        return $columns;
-    }
-
-    public function getIndexesFromInput($columns)
-    {
-        $indexes = array();
-
-        while (true) {
-            $index = $this->getIndexFromInput(count($indexes) + 1, $columns);
-            if (!$index) {
-                break;
-            }
-
-            $indexes[] = $index;
-
-            if (!$this->confirm("More indexes", true)) {
-                break;
-            }
-        }
-
-        return $indexes;
-    }
-
-    public function getForeignKeysFromInput($columns)
-    {
-        $fks = array();
-
-        while (true) {
-            $fk = $this->getForeignKeyFromInput(count($fks) + 1, $columns);
-            if (!$fk) {
-                break;
-            }
-
-            $fks[] = $fk;
-
-            if (!$this->confirm("More foreign keys", true)) {
-                break;
-            }
-        }
-
-        return $fks;
-    }
-
-    private function getForeignKeyFromInput($fkNum, $columns)
-    {
-        $this->info("Please enter the information for foreign key $fkNum:\n");
-
-        while (true) {
-            $fkName = $this->ask('Foreign Key Name');
-
-            if ($fkName != "") {
-                break;
-            }
-        }
-
-        $fkColumns = array();
-
-        $fkColNames = array();
-
-        foreach ($columns as $column) {
-            $fkColNames[] = $column->colName;
-        }
-
-        while (true) {
-            $fkColName = $this->choice("Foreign Key Column " . (count($fkColumns) + 1), $fkColNames);
-
-            $fkColumns[] = $fkColName;
-
-            if (!$this->confirm("More foreign key columns", false)) {
-                break;
-            }
-        }
-
-        while (true) {
-            $parentTableName = $this->ask('References table name');
-
-            if ($parentTableName != "") {
-                break;
-            }
-        }
-
-        $refColumns = array();
-
-        while (true) {
-            $refColName = $this->ask("References table column " . (count($refColumns) + 1));
-
-            $refColumns[] = $refColName;
-
-            if (!$this->confirm("More references table columns", false)) {
-                break;
-            }
-        }
-
-        return new ForeignKey($fkName, $fkColumns, $parentTableName, $refColumns);
-    }
-
-    private function getIndexFromInput($indexNum, $columns)
-    {
-        $this->info("Please enter the information for index $indexNum:\n");
-
-        while (true) {
-            $indexName = $this->ask('Index Name');
-
-            if ($indexName != "") {
-                break;
-            }
-        }
-
-        $indexColumns = array();
-
-        $indexColNames = array();
-
-        foreach ($columns as $column) {
-            $indexColNames[] = $column->colName;
-        }
-
-        while (true) {
-            $indexColName = $this->choice("Index Column " . (count($indexColumns) + 1), $indexColNames);
-
-            $indexColumns[] = $indexColName;
-
-            if (!$this->confirm("More index columns", true)) {
-                break;
-            }
-        }
-
-	$indexType = $this->choice("Index Type", ['Primary', 'Unique', 'Non-Unique']);;
-
-        return new Index($indexName, $indexColumns, $indexType);
-    }
-
-    private function getColumnFromInput($colNum)
-    {
-        $length = 0;
-        $decimalPlaces = 0;
-        $unsigned = false;
-        $charset = "";
-        $collation = "";
-        $autoIncrement = false;
-
-        $this->info("Please enter the information for column $colNum:\n");
-
-        while (true) {
-            $colName = $this->ask('Column Name');
-
-            if ($colName != "") {
-                break;
-            }
-        }
-
-        $dataTypes = array();
-
-        foreach ($this->columnDataTypeMapping as $dataType => $formatterClassName) {
-            $dataTypes[] = $dataType;
-        }
-
-        $dataType = $this->choice('Data Type', $dataTypes, null);
-
-        if (CommandHelper::dataTypeSupportsLength($dataType)) {
-            $length = $this->ask('Length');
-        }
-
-        if (CommandHelper::dataTypeSupportsDecimalPlaces($dataType)) {
-            $decimalPlaces = $this->ask('Decimal places');
-        }
-
-        if (CommandHelper::dataTypeSupportsUnsigned($dataType)) {
-            $unsigned = $this->confirm('Unsigned', false);
-        }
-
-        $allowNulls = $this->confirm('Allow NULL values', true);
-
-        if (CommandHelper::dataTypeSupportsCharset($dataType)) {
-            $charset = $this->ask('Character set [leave empty for default character set]');
-            $collation = $this->ask('Collation [leave empty for default character set]');
-        }
-
-        if (CommandHelper::dataTypeSupportsAutoIncrement($dataType)) {
-            $autoIncrement = $this->confirm('Auto Increment', false);
-
-            if ($autoIncrement) { //  Set allow nulls to false if auto increment
-                $allowNulls = false;
-            }
-        }
-
-        $defaultValue = $this->ask('Default value');
-
-        $comment = $this->ask('Comment');
-
-        return new Column($colName, $dataType, $length, $decimalPlaces, $unsigned, $allowNulls, $charset, $collation, $autoIncrement, $defaultValue, $comment);
+	return $createDDLStatements;
     }
 
     private function handleFromDDL($tableName, $migrationName, $ddlFilename)
@@ -419,6 +189,12 @@ class MakeDbTableCommand extends Command
             $this->error("File '$ddlFilename' does not exist");
             return;
         }
+
+	$createDDLStatements = $this->getCreateDDLFromFile($ddlFilename);
+
+	print_r($createDDLStatements);
+
+	return;	
 
         $fileContents = trim(file_get_contents($ddlFilename));
 
