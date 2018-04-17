@@ -16,6 +16,8 @@ class DummyClass extends Migration
         Schema::create('DummyTable', function (Blueprint $table) {
 [[TABLEDEF]]
         });
+
+	[[TABLECOMMENT]]
     }
 
     /**

@@ -568,7 +568,9 @@ class MakeMigrationCommand extends Command
             $foreignKeys = $this->getForeignKeysFromInput($columns);
         }
 
-        $tableComment = $this->ask('Table comment');
+        $tableComment = trim($this->ask('Table comment'));
+
+	echo "The table comment is [$tableComment]\n";
 
         $this->generateMigration($tableName, $columns, $indexes, $foreignKeys, $tableComment);
     }
@@ -579,8 +581,6 @@ class MakeMigrationCommand extends Command
 
         foreach ($columns as $column) {
             $formatterClassName = "Roycedev\\DbCli\\Console\\Formatters\\" . $this->columnDataTypeMapping[$column->dataType];
-
-            echo "Class name: $formatterClassName \n";
 
             $formatter = new $formatterClassName($column);
 
@@ -595,6 +595,8 @@ class MakeMigrationCommand extends Command
                 $tableDef .= $fk->toText() . "\n";
         }
 
+	$migrationName = $this->formatMigrationName($tableName);
+
         $createStubFile = __DIR__ . "/stubs/create.stub";
 
         $createStub = file_get_contents($createStubFile);
@@ -603,13 +605,17 @@ class MakeMigrationCommand extends Command
 
         $outputText = str_replace("[[TABLEDEF]]", $tableDef, $outputText);
 
+	if ($tableComment != "") {
+		echo "Table comment [$tableComment\\n";
+
+		$outputText = str_replace("[[TABLECOMMENT]]", "DB::statement('ALTER TABLE `$tableName` COMMENT = \"$tableComment\"');", $outputText);
+	}
+
         $outputText = str_replace("DummyClass", $migrationName, $outputText);
 
         $filename = base_path() . "/database/migrations/" . date("Y_m_d_His") . "_$migrationName" . ".php";
 
         file_put_contents($filename, $outputText);
-
-        print_r($outputText);
 
         $this->info("Migration script written to $filename");
 
