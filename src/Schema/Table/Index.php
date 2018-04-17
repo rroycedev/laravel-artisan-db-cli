@@ -36,6 +36,18 @@ class Index
             $columns[]= $name;
         }
         $this->name    = $name;
+
+	if (gettype($columns) == "string") {
+		$columns = explode(",", $columns);
+	}
+	else {
+		echo "Columns is already an array\n";
+	}
+
+	echo "Index Columns: \n";
+
+	print_r($columns);
+
         $this->columns = $columns;
         $this->type    = $type;
     }

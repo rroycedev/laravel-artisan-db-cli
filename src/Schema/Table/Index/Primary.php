@@ -15,8 +15,8 @@ use Roycedev\DbCli\Schema;
  */
 class Primary extends Index
 {
-    public function __construct($name, $columns = [ ], $type = 'primary')
+    public function __construct($columns = [ ], $type = 'primary')
     {
-        parent::__construct($name, [$name], $type);
+        parent::__construct('PRIMARY', $columns, $type);
     }
 }

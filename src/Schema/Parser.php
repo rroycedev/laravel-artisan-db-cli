@@ -107,7 +107,7 @@ class Parser
         $charsetMatches = preg_match($tablePatterns['charset'], $matches[count($matches) - 1], $fields);
 
         if ($charsetMatches) {
-            $charset = trim(str_replace("=", "", trim($fields[1])));
+            $charset = str_replace(";", "", trim(str_replace("=", "", trim($fields[1]))));
         }
 
         // Collate option
@@ -117,7 +117,7 @@ class Parser
         $collateMatches = preg_match($tablePatterns['collate'], $matches[count($matches) - 1], $fields);
 
         if ($collateMatches) {
-            $collate = trim(str_replace("=", "", trim($fields[1])));
+            $collate = str_replace(";", "", trim(str_replace("=", "", trim($fields[1]))));
         }
 
         $name = Schema::unQuote($matches[1]);
@@ -162,13 +162,13 @@ class Parser
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
                 $name = array_shift($fields);
-                $table->addIndex(new Index\Unique($name, $fields));
+                $table->addIndex(new Index\Unique($name, $fields[0]));
             } else if (preg_match($patterns['table']['fulltext'], $column,
                 $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
                 $name = array_shift($fields);
-                $table->addIndex(new Index($name, $fields, 'fulltext'));
+                $table->addIndex(new Index($name, $fields[0], 'fulltext'));
 //            } else if (preg_match("/FOREIGN KEY\s(.*)\(([^)]+)\)\s+REFERENCES+(.*)\(([^)]+)\)/", $column, $fields)) {
             } else if (preg_match($patterns['table']['foreignkey'], $column, $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
@@ -203,13 +203,19 @@ class Parser
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
                 $name = array_shift($fields);
-                $table->addIndex(new Index($name, $fields));
+                $table->addIndex(new Index($name, $fields[0]));
             } else {
                 // ordinary field: name is first word (optionally quoted), data type is rest of string
                 preg_match($patterns['table']['column'], $column, $matches);
 
                 $name = Schema::unQuote($matches[1]);
-                $table->addColumn($this->columnFactory->create($name, $comment, $matches[2]));
+
+		try {
+	                $table->addColumn($this->columnFactory->create($name, $comment, $matches[2]));
+		}
+		catch(\Exception $ex) {
+			throw new \Exception("Error processing table " . $table->getName() . ": " . $ex->getMessage());
+		}
             }
         }
 

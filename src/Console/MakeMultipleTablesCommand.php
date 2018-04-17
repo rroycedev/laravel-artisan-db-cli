@@ -2,6 +2,7 @@
 
 namespace Roycedev\DbCli\Console;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Console\Command;
 use Roycedev\DbCli\Schema;
 use Roycedev\DbCli\Schema\Parser;
@@ -13,7 +14,7 @@ class MakeMultipleTablesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'dbcli:makemultipletables filename? : The name of the file that contains the DDL to convert to a database migration script.} {migrationname? : The name of the database migration}';
+    protected $signature = 'dbcli:makemultipletables {filename? : The name of the file that contains the DDL to convert to a database migration script.} {migrationname? : The name of the database migration}';
 
     /**
      * The console command description.
@@ -117,7 +118,7 @@ class MakeMultipleTablesCommand extends Command
     {
         $fromDDLFilename = trim($this->argument('filename'));
 
-        if ($tableName == "") {
+        if ($fromDDLFilename == "") {
             $this->info("You must specify a filename");
             return;
         }
@@ -183,7 +184,7 @@ class MakeMultipleTablesCommand extends Command
 	return $createDDLStatements;
     }
 
-    private function handleFromDDL($tableName, $migrationName, $ddlFilename)
+    private function handleFromDDL($migrationName, $ddlFilename)
     {
         if (!file_exists($ddlFilename)) {
             $this->error("File '$ddlFilename' does not exist");
@@ -192,17 +193,68 @@ class MakeMultipleTablesCommand extends Command
 
 	$createDDLStatements = $this->getCreateDDLFromFile($ddlFilename);
 
-	print_r($createDDLStatements);
+	$tables = array();
 
-	return;	
+	foreach ($createDDLStatements as $createDDL) {
+		$tables[] = $this->getTableFromDDL($createDDL);
+	}
 
-        $fileContents = trim(file_get_contents($ddlFilename));
+	$orderedTables = array();
 
+	//  Add tables without foreign keys first
+
+	foreach ($tables as $table) {
+		if (count($table->getForeignKeys()) == 0) {
+			$orderedTables[] = $table;
+		}
+	}
+
+	foreach ($tables as $table) {
+                if (count($table->getForeignKeys()) == 0) {
+			continue;
+                }
+
+		$orderedTables[] = $table;
+	}
+
+	echo "Processing tables in this order:\n\n";
+
+	foreach ($orderedTables as $table) {
+		echo $table->getName() . "\n";
+	}
+
+	echo "\n";
+
+	$tableNum = 0;
+
+	foreach ($orderedTables as $table) {
+		$tableNum++;
+
+		$this->processTable($table, $tableNum);
+	}
+    }
+
+    private function getTableFromDDL($createDDL)
+    {
         $parsedSchema = new Schema();
 
         $parser = new Parser();
 
-        $table = $parser->parseTable($fileContents);
+        $table = $parser->parseTable($createDDL);
+
+	return $table;
+    }
+
+    private function processTable($table, $tableNum) 
+    {
+	$parts = explode("_", $table->getName());
+
+	$migrationName = "";
+
+	foreach ($parts as $part) {
+		$migrationName .= ucfirst($part);
+	}
+
 
         $columns = $table->getColumns();
 
@@ -219,6 +271,21 @@ class MakeMultipleTablesCommand extends Command
         if ($table->getCollation() != "") {
             $tableDef .= '              $table->collation = "' . $table->getCollation() . '";' . "\n";
         }
+	else {
+		if ($table->getCharacterset() != "") {
+		        $row = DB::select('show character set like \'' . $table->getCharacterset() . '\'');
+
+			if (!$row || count($row) == 0) {
+				throw new \Exception("Default collation for character set '" . $table->getCharacterset() . "' does not exist");
+			}
+
+			$def = $row[0];
+
+			$colName = "Default collation";
+
+	                $tableDef .= '              $table->collation = "' . $def->$colName . '";' . "\n";
+		}
+	}
 
         $autoIncrementColumn = "";
 
@@ -322,6 +389,12 @@ class MakeMultipleTablesCommand extends Command
                         $tableDef .= '              $table->' . $colSize . 'Integer(\'' . $colName . '\')->unsigned()' . $clauses . ';' . "\n";
                     }
                     break;
+                case "CharColumn":
+                    $colLength = $column->getLength();
+
+                    $tableDef .= '              $table->char(\'' . $colName . '\', ' . $colLength . ')' . $clauses . ';' . "\n";
+
+                    break;
                 case "StringColumn":
                     $colLength = $column->getLength();
 
@@ -407,7 +480,7 @@ class MakeMultipleTablesCommand extends Command
                 $tableDef .= '              $table->unique(' . $indexColumn . ', \'' . $indexName . '\');' . "\n";
             } else if ($index->getType() == "primary") {
                 if ($autoIncrementColumn == "") {
-                    $tableDef .= '              $table->primary(' . $indexColumn . ');' . "\n";
+                    $tableDef .= '              $table->primary(' . $indexColumn . ', \'pk_index\');' . "\n";
                 }
             } else {
                 $tableDef .= '              $table->index(' . $indexColumn . ', \'' . $indexName . '\');' . "\n";
@@ -440,13 +513,13 @@ class MakeMultipleTablesCommand extends Command
 
         $createStub = file_get_contents($createStubFile);
 
-        $outputText = str_replace("DummyTable", $tableName, $createStub);
+        $outputText = str_replace("DummyTable", $table->getName(), $createStub);
 
         $outputText = str_replace("[[TABLEDEF]]", $tableDef, $outputText);
 
         $outputText = str_replace("DummyClass", $migrationName, $outputText);
 
-        $filename = base_path() . "/database/migrations/" . date("Y_m_d_His") . "_$migrationName" . ".php";
+        $filename = base_path() . "/database/migrations/" . date("Y_m_d") . "_" . str_pad($tableNum, 5, "0", STR_PAD_LEFT) . "_$migrationName" . ".php";
 
         file_put_contents($filename, $outputText);
 
@@ -459,8 +532,6 @@ class MakeMultipleTablesCommand extends Command
 
     protected function getOptions()
     {
-        echo "Get options\n";
-
         return [
             ['fromddl', 'ask', InputOption::VALUE_REQUIRED, 'The file that contains the create DDL.'],
         ];

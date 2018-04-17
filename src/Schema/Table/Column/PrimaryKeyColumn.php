@@ -24,7 +24,7 @@ class PrimaryKeyColumn extends IntegerColumn
         $digits = self::DEFAULT_DIGITS
     ) {
         $allowNull = false;
-        parent::__construct($name, $description, $allowNull, $unique, $charset, $colloate, $size, $digits);
+        parent::__construct($name, $description, $allowNull, $unique, $charset, $collate, $size, $digits);
     }
 
     public function getSQLType()

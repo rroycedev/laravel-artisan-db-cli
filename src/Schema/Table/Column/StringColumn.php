@@ -16,7 +16,7 @@ class StringColumn extends Column
     const DEFAULT_LENGTH = 50;
 
     /** @var integer  */
-    private $length = self::DEFAULT_LENGTH;
+    protected $length = self::DEFAULT_LENGTH;
 
     public function __construct($name, $description = '', $allowNull = false, $unique = false, $charset = "", $collate = "", $length = self::DEFAULT_LENGTH)
     {

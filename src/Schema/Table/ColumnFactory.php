@@ -34,10 +34,14 @@ class ColumnFactory implements ColumnFactoryInterface
 
             if (count($matches) > 2) {
                 if (preg_match($allPatterns['table']['collate'], $matches[2], $collateMatches)) {
-                    $collate = $collateMatches[1];
+                    $collate = str_replace(";", "", $collateMatches[1]);
                 }
                 if (preg_match($allPatterns['table']['charset'], $matches[2], $charsetMatches)) {
-                    $charset = $charsetMatches[1];
+			echo "CHARET BEFORE [" . $matches[1] . "]n";
+                    $charset = str_replace(";", "", $charsetMatches[1]);
+			echo "CHARSET AFTER [" . $charset . "]\n";
+
+			exit(1);
                 }
             }
 
