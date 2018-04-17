@@ -14,7 +14,7 @@ class MakeMigrationCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'dbcli:makemigration {--type? : Type of migration.  Values are \'createtable\' or \'altertable\'} {--filename? : The filename containing the DDL.}';
+    protected $signature = 'dbcli:makemigration {--type= : Type of migration.  Values are \'createtable\' or \'altertable\'} {--filename= : The filename containing the DDL.}';
 
     /**
      * The console command description.
@@ -116,7 +116,7 @@ class MakeMigrationCommand extends Command
      */
     public function handle()
     {
-	$type = trim(strtolower($this->option('type'));
+	$type = trim(strtolower($this->option('type')));
 
 	if ($type == "") {
 		$this->info('You must specify the option --type');
@@ -128,12 +128,7 @@ class MakeMigrationCommand extends Command
 		return;
 	}
 
-        $fromDDLFilename = trim($this->argument('filename'));
-
-        if ($fromDDLFilename == "") {
-            $this->info("You must specify a filename");
-            return;
-        }
+        $fromDDLFilename = trim($this->option('filename'));
 
         if ($fromDDLFilename == "") {
             $this->handleInteractive($type);
@@ -226,14 +221,6 @@ class MakeMigrationCommand extends Command
 		$orderedTables[] = $table;
 	}
 
-	echo "Processing tables in this order:\n\n";
-
-	foreach ($orderedTables as $table) {
-		echo $table->getName() . "\n";
-	}
-
-	echo "\n";
-
 	$tableNum = 0;
 
 	foreach ($orderedTables as $table) {
@@ -256,7 +243,7 @@ class MakeMigrationCommand extends Command
 
     private function formatMigrationName($tableName) 
     {
-        $parts = explode("_", $table->getName());
+        $parts = explode("_", $tableName);
 
         $migrationName = "";
 
@@ -269,7 +256,7 @@ class MakeMigrationCommand extends Command
 
     private function processTable($table, $tableNum) 
     {
-	$migrationName = $this->formatMigrationName($tableName);
+	$migrationName = $this->formatMigrationName($table->getName());
 
         $columns = $table->getColumns();
 
@@ -548,7 +535,9 @@ class MakeMigrationCommand extends Command
     protected function getOptions()
     {
         return [
-            ['fromddl', 'ask', InputOption::VALUE_REQUIRED, 'The file that contains the create DDL.'],
+	    ['type', null, InputOption::VALUE_REQUIRED, 'The type of migration script: create/alter'],
+            ['filename', null, InputOption::VALUE_REQUIRED, 'The file that contains the create DDL.'],
+	   
         ];
     }
 
