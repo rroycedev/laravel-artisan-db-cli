@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Roycedev\DbCli\Console\MakeDbTableCommand;
-use Roycedev\DbCli\Console\MakeMultipleTablesCommand;
+use Roycedev\DbCli\Console\MakeMigrationCommand;
 
 class DbCliServiceProvider extends ServiceProvider
 {
@@ -20,8 +20,7 @@ class DbCliServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                MakeDbTableCommand::class,
-		MakeMultipleTablesCommand::class
+                MakeMigrationCommand::class,
             ]);
         }
     }
@@ -33,6 +32,6 @@ class DbCliServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->commands([MakeDbTableCommand::class, MakeMultipleTablesCommand::class]);
+        $this->commands([MakeMigrationCommand::class]);
     }
 }
