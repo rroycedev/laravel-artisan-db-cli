@@ -89,9 +89,11 @@ class AlterTableSQL
                     continue; // keep searching for a column that matches (fully or partially)
                 }
                 if ($comparison == Column::PARTIAL_MATCH) {
-                    $sql[] = $this->modifyColumn($copy,
+                    $sql[] = $this->modifyColumn(
+                        $copy,
                         $master->getColumnNumber($masterColumnNumber),
-                        $copy->getColumnNumber($c));
+                        $copy->getColumnNumber($c)
+                    );
                 }
 
                 if ($copyColumnNumber < $c) {
