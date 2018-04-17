@@ -1,9 +1,4 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    March 2015
- */
 
 namespace Roycedev\DbCli\Schema\Table\Column;
 
@@ -22,7 +17,10 @@ class ForeignKeyColumn extends IntegerColumn
     public function __construct(
         $name,
         $description = '',
-        $allowNull = false, $unique = false, $charset = "", $collate = "",
+        $allowNull = false,
+        $unique = false,
+        $charset = "",
+        $collate = "",
         $size = self::DEFAULT_SIZE,
         $digits = self::DEFAULT_DIGITS,
         $otherTable = ''

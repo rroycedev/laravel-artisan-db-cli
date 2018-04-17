@@ -16,9 +16,19 @@ class Column
     public $defaultValue;
     public $comment;
 
-    public function __construct($colName, $dataType, $length, $decimalPlaces, $unsigned,
-        $allowNulls, $charset, $collation, $autoIncrement, $defaultValue, $comment) {
-
+    public function __construct(
+        $colName,
+        $dataType,
+        $length,
+        $decimalPlaces,
+        $unsigned,
+        $allowNulls,
+        $charset,
+        $collation,
+        $autoIncrement,
+        $defaultValue,
+        $comment
+    ) {
         $this->colName = $colName;
         $this->dataType = $dataType;
         $this->length = $length;

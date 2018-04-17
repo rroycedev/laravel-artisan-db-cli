@@ -1,9 +1,4 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    March 2015
- */
 
 namespace Roycedev\DbCli\Schema\Table\Index;
 
@@ -21,42 +16,41 @@ class ForeignKey
 
     public function __construct($name, $columnName = "", $parentTable = "", $parentTableColumn = "", $onDelete = "", $onUpdate = "")
     {
-	$this->name = $name;
-	$this->columnName = $columnName;
-	$this->parentTable = $parentTable;
-	$this->parentTableColumn = $parentTableColumn;
-	$this->onDelete = $onDelete;
-	$this->onUpdate = $onUpdate;
+        $this->name = $name;
+        $this->columnName = $columnName;
+        $this->parentTable = $parentTable;
+        $this->parentTableColumn = $parentTableColumn;
+        $this->onDelete = $onDelete;
+        $this->onUpdate = $onUpdate;
     }
 
-    public function getName() 
+    public function getName()
     {
-	return $this->name;
+        return $this->name;
     }
 
     public function getColumnName()
     {
-	return $this->columnName;
+        return $this->columnName;
     }
 
-    public function getParentTableName() 
+    public function getParentTableName()
     {
-	return $this->parentTable;
+        return $this->parentTable;
     }
 
-    public function getParentTableColumnName() 
+    public function getParentTableColumnName()
     {
-	return $this->parentTableColumn;
+        return $this->parentTableColumn;
     }
 
-    public function getOnDelete() 
+    public function getOnDelete()
     {
-	return $this->onDelete;
+        return $this->onDelete;
     }
 
-    public function getOnUpdate() 
+    public function getOnUpdate()
     {
-	return $this->onUpdate;
+        return $this->onUpdate;
     }
-	
 }

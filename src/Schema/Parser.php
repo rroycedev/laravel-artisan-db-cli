@@ -1,9 +1,4 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    March 2015
- */
 
 namespace Roycedev\DbCli\Schema;
 
@@ -163,14 +158,12 @@ class Parser
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
                 $name = array_shift($fields);
                 $table->addIndex(new Index\Unique($name, $fields[0]));
-            } else if (preg_match($patterns['table']['fulltext'], $column,
-                $fields)) {
+            } elseif (preg_match($patterns['table']['fulltext'], $column, $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
                 $name = array_shift($fields);
                 $table->addIndex(new Index($name, $fields[0], 'fulltext'));
-//            } else if (preg_match("/FOREIGN KEY\s(.*)\(([^)]+)\)\s+REFERENCES+(.*)\(([^)]+)\)/", $column, $fields)) {
-            } else if (preg_match($patterns['table']['foreignkey'], $column, $fields)) {
+            } elseif (preg_match($patterns['table']['foreignkey'], $column, $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
 
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
@@ -199,7 +192,7 @@ class Parser
                     }
                 }
                 $table->addForeignKey(new ForeignKey($fkName, $fkColName, $parentTableName, $parentTableColName, $onDelete, $onUpdate));
-            } else if (preg_match($patterns['table']['key'], $column, $fields)) {
+            } elseif (preg_match($patterns['table']['key'], $column, $fields)) {
                 array_shift($fields); // delete $fields[0] coz it is the whole string
                 $fields = array_map('Roycedev\DbCli\Schema::unQuote', $fields);
                 $name = array_shift($fields);
@@ -210,12 +203,11 @@ class Parser
 
                 $name = Schema::unQuote($matches[1]);
 
-		try {
-	                $table->addColumn($this->columnFactory->create($name, $comment, $matches[2]));
-		}
-		catch(\Exception $ex) {
-			throw new \Exception("Error processing table " . $table->getName() . ": " . $ex->getMessage());
-		}
+                try {
+                    $table->addColumn($this->columnFactory->create($name, $comment, $matches[2]));
+                } catch (\Exception $ex) {
+                    throw new \Exception("Error processing table " . $table->getName() . ": " . $ex->getMessage());
+                }
             }
         }
 

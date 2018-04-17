@@ -1,9 +1,4 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    March 2015
- */
 
 namespace Roycedev\DbCli\Schema\Table;
 
@@ -37,11 +32,7 @@ class ColumnFactory implements ColumnFactoryInterface
                     $collate = str_replace(";", "", $collateMatches[1]);
                 }
                 if (preg_match($allPatterns['table']['charset'], $matches[2], $charsetMatches)) {
-			echo "CHARET BEFORE [" . $matches[1] . "]n";
                     $charset = str_replace(";", "", $charsetMatches[1]);
-			echo "CHARSET AFTER [" . $charset . "]\n";
-
-			exit(1);
                 }
             }
 

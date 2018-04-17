@@ -2,8 +2,8 @@
 
 namespace Roycedev\DbCli\Console;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Roycedev\DbCli\Schema;
 use Roycedev\DbCli\Schema\Parser;
 
@@ -116,17 +116,17 @@ class MakeMigrationCommand extends Command
      */
     public function handle()
     {
-	$type = trim(strtolower($this->option('type')));
+        $type = trim(strtolower($this->option('type')));
 
-	if ($type == "") {
-		$this->info('You must specify the option --type');
-		return;
-	}
+        if ($type == "") {
+            $this->info('You must specify the option --type');
+            return;
+        }
 
-	if ($type != 'createtable' && $type != 'altertable') {
-		$this->info('Invalid value \'' . $type . '\' for option --type');
-		return;
-	}
+        if ($type != 'createtable' && $type != 'altertable') {
+            $this->info('Invalid value \'' . $type . '\' for option --type');
+            return;
+        }
 
         $fromDDLFilename = trim($this->option('filename'));
 
@@ -137,55 +137,56 @@ class MakeMigrationCommand extends Command
         }
     }
 
-    private function getCreateDDLFromFile($ddlFilename) {
-	$lines = file($ddlFilename);
+    private function getCreateDDLFromFile($ddlFilename)
+    {
+        $lines = file($ddlFilename);
 
-	$i = 0;
+        $i = 0;
 
-	$createDDLStatements = array();
+        $createDDLStatements = array();
 
-	while (true) {
-        	if ($i > count($lines) - 1) {
-                	break;
-	        }
+        while (true) {
+            if ($i > count($lines) - 1) {
+                break;
+            }
 
-	        $line = $lines[$i];
+            $line = $lines[$i];
 
-        	$thisLine = trim($line);
+            $thisLine = trim($line);
 
-	        if ($thisLine  == "") {
-        	        $i++;
-                	continue;
-	        }
+            if ($thisLine == "") {
+                $i++;
+                continue;
+            }
 
-        	if (substr($thisLine, 0, 2) == "--" || substr($thisLine, 0, 2) == "/*") {
-                	$i++;
-	                continue;
-        	}
+            if (substr($thisLine, 0, 2) == "--" || substr($thisLine, 0, 2) == "/*") {
+                $i++;
+                continue;
+            }
 
-	        if (strtoupper(substr($thisLine, 0, 13)) != "CREATE TABLE ") {
-        	        $i++;
-                	continue;
-	        }
+            if (strtoupper(substr($thisLine, 0, 13)) != "CREATE TABLE ") {
+                $i++;
+                continue;
+            }
 
-        	$createTable = $thisLine;
+            $createTable = $thisLine;
 
-	        while (true) {
-        	        $i++;
+            while (true) {
+                $i++;
 
-                	$thisLine = trim($lines[$i]);
+                $thisLine = trim($lines[$i]);
 
-	                $createTable .= $thisLine . "\n";
+                $createTable .= $thisLine . "\n";
 
-        	        if (stripos($thisLine, ";") !== FALSE) {
-                	        break;
-	                }
-        	}
+                if (stripos($thisLine, ";") !== false) {
+                    break;
+                }
+            }
 
-		$createDDLStatements[] = $createTable;
-	}
+            $createDDLStatements[] = $createTable;
+        }
 
-	return $createDDLStatements;
+        return $createDDLStatements;
     }
 
     private function handleFromDDL($type, $ddlFilename)
@@ -195,39 +196,39 @@ class MakeMigrationCommand extends Command
             return;
         }
 
-	$createDDLStatements = $this->getCreateDDLFromFile($ddlFilename);
+        $createDDLStatements = $this->getCreateDDLFromFile($ddlFilename);
 
-	$tables = array();
+        $tables = array();
 
-	foreach ($createDDLStatements as $createDDL) {
-		$tables[] = $this->getTableFromDDL($createDDL);
-	}
+        foreach ($createDDLStatements as $createDDL) {
+            $tables[] = $this->getTableFromDDL($createDDL);
+        }
 
-	$orderedTables = array();
+        $orderedTables = array();
 
-	//  Add tables without foreign keys first
+        //  Add tables without foreign keys first
 
-	foreach ($tables as $table) {
-		if (count($table->getForeignKeys()) == 0) {
-			$orderedTables[] = $table;
-		}
-	}
+        foreach ($tables as $table) {
+            if (count($table->getForeignKeys()) == 0) {
+                $orderedTables[] = $table;
+            }
+        }
 
-	foreach ($tables as $table) {
-                if (count($table->getForeignKeys()) == 0) {
-			continue;
-                }
+        foreach ($tables as $table) {
+            if (count($table->getForeignKeys()) == 0) {
+                continue;
+            }
 
-		$orderedTables[] = $table;
-	}
+            $orderedTables[] = $table;
+        }
 
-	$tableNum = 0;
+        $tableNum = 0;
 
-	foreach ($orderedTables as $table) {
-		$tableNum++;
+        foreach ($orderedTables as $table) {
+            $tableNum++;
 
-		$this->processTable($table, $tableNum);
-	}
+            $this->processTable($table, $tableNum);
+        }
     }
 
     private function getTableFromDDL($createDDL)
@@ -238,25 +239,25 @@ class MakeMigrationCommand extends Command
 
         $table = $parser->parseTable($createDDL);
 
-	return $table;
+        return $table;
     }
 
-    private function formatMigrationName($tableName) 
+    private function formatMigrationName($tableName)
     {
         $parts = explode("_", $tableName);
 
         $migrationName = "";
 
         foreach ($parts as $part) {
-                $migrationName .= ucfirst($part);
+            $migrationName .= ucfirst($part);
         }
 
-	return $migrationName;
+        return $migrationName;
     }
 
-    private function processTable($table, $tableNum) 
+    private function processTable($table, $tableNum)
     {
-	$migrationName = $this->formatMigrationName($table->getName());
+        $migrationName = $this->formatMigrationName($table->getName());
 
         $columns = $table->getColumns();
 
@@ -272,22 +273,21 @@ class MakeMigrationCommand extends Command
 
         if ($table->getCollation() != "") {
             $tableDef .= '              $table->collation = "' . $table->getCollation() . '";' . "\n";
+        } else {
+            if ($table->getCharacterset() != "") {
+                $row = DB::select('show character set like \'' . $table->getCharacterset() . '\'');
+
+                if (!$row || count($row) == 0) {
+                    throw new \Exception("Default collation for character set '" . $table->getCharacterset() . "' does not exist");
+                }
+
+                $def = $row[0];
+
+                $colName = "Default collation";
+
+                $tableDef .= '              $table->collation = "' . $def->$colName . '";' . "\n";
+            }
         }
-	else {
-		if ($table->getCharacterset() != "") {
-		        $row = DB::select('show character set like \'' . $table->getCharacterset() . '\'');
-
-			if (!$row || count($row) == 0) {
-				throw new \Exception("Default collation for character set '" . $table->getCharacterset() . "' does not exist");
-			}
-
-			$def = $row[0];
-
-			$colName = "Default collation";
-
-	                $tableDef .= '              $table->collation = "' . $def->$colName . '";' . "\n";
-		}
-	}
 
         $autoIncrementColumn = "";
 
@@ -480,7 +480,7 @@ class MakeMigrationCommand extends Command
 
             if ($index->getType() == "unique") {
                 $tableDef .= '              $table->unique(' . $indexColumn . ', \'' . $indexName . '\');' . "\n";
-            } else if ($index->getType() == "primary") {
+            } elseif ($index->getType() == "primary") {
                 if ($autoIncrementColumn == "") {
                     $tableDef .= '              $table->primary(' . $indexColumn . ', \'pk_index\');' . "\n";
                 }
@@ -535,24 +535,23 @@ class MakeMigrationCommand extends Command
     protected function getOptions()
     {
         return [
-	    ['type', null, InputOption::VALUE_REQUIRED, 'The type of migration script: create/alter'],
+            ['type', null, InputOption::VALUE_REQUIRED, 'The type of migration script: create/alter'],
             ['filename', null, InputOption::VALUE_REQUIRED, 'The file that contains the create DDL.'],
-	   
+
         ];
     }
-
 
     private function handleInteractive($type)
     {
         $this->info("In order to generate a database migration script for a table, you will be asked to enter information\n");
 
-	while (true) {
-		$tableName = trim($this->ask('Table name'));
+        while (true) {
+            $tableName = trim($this->ask('Table name'));
 
-		if ($tableName != "") {
-			break;
-		}
-	}
+            if ($tableName != "") {
+                break;
+            }
+        }
 
         $columns = $this->getColumnsFromInput();
 
@@ -570,7 +569,7 @@ class MakeMigrationCommand extends Command
 
         $tableComment = trim($this->ask('Table comment'));
 
-	echo "The table comment is [$tableComment]\n";
+        echo "The table comment is [$tableComment]\n";
 
         $this->generateMigration($tableName, $columns, $indexes, $foreignKeys, $tableComment);
     }
@@ -588,14 +587,14 @@ class MakeMigrationCommand extends Command
         }
 
         foreach ($indexes as $index) {
-                $tableDef .= $index->toText() . "\n";
+            $tableDef .= $index->toText() . "\n";
         }
 
         foreach ($foreignKeys as $fk) {
-                $tableDef .= $fk->toText() . "\n";
+            $tableDef .= $fk->toText() . "\n";
         }
 
-	$migrationName = $this->formatMigrationName($tableName);
+        $migrationName = $this->formatMigrationName($tableName);
 
         $createStubFile = __DIR__ . "/stubs/create.stub";
 
@@ -605,11 +604,11 @@ class MakeMigrationCommand extends Command
 
         $outputText = str_replace("[[TABLEDEF]]", $tableDef, $outputText);
 
-	if ($tableComment != "") {
-		echo "Table comment [$tableComment\\n";
+        if ($tableComment != "") {
+            echo "Table comment [$tableComment\\n";
 
-		$outputText = str_replace("[[TABLECOMMENT]]", "DB::statement('ALTER TABLE `$tableName` COMMENT = \"$tableComment\"');", $outputText);
-	}
+            $outputText = str_replace("[[TABLECOMMENT]]", "DB::statement('ALTER TABLE `$tableName` COMMENT = \"$tableComment\"');", $outputText);
+        }
 
         $outputText = str_replace("DummyClass", $migrationName, $outputText);
 
@@ -764,7 +763,7 @@ class MakeMigrationCommand extends Command
             }
         }
 
-        $indexType = $this->choice("Index Type", ['Primary', 'Unique', 'Non-Unique']);;
+        $indexType = $this->choice("Index Type", ['Primary', 'Unique', 'Non-Unique']);
 
         return new Index($indexName, $indexColumns, $indexType);
     }
@@ -829,5 +828,4 @@ class MakeMigrationCommand extends Command
 
         return new Column($colName, $dataType, $length, $decimalPlaces, $unsigned, $allowNulls, $charset, $collation, $autoIncrement, $defaultValue, $comment);
     }
-
 }

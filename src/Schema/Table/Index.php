@@ -1,9 +1,4 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    March 2015
- */
 
 namespace Roycedev\DbCli\Schema\Table;
 
@@ -18,33 +13,31 @@ class Index
     private $name;
 
     /** @var string[] */
-    private $columns = [ ];
+    private $columns = [];
 
     /** @var string */
     private $type = '';
-
 
     /**
      * @param string   $name column name
      * @param string[] $columns
      * @param string   $type
      */
-    public function __construct($name, $columns = [ ], $type = '')
+    public function __construct($name, $columns = [], $type = '')
     {
         if (empty($columns)) {
             // assume the index is named after the column it indexes
-            $columns[]= $name;
+            $columns[] = $name;
         }
-        $this->name    = $name;
+        $this->name = $name;
 
-	if (gettype($columns) == "string") {
-		$columns = explode(",", $columns);
-	}
+        if (gettype($columns) == "string") {
+            $columns = explode(",", $columns);
+        }
 
         $this->columns = $columns;
-        $this->type    = $type;
+        $this->type = $type;
     }
-
 
     /**
      * @return string
@@ -53,7 +46,6 @@ class Index
     {
         return $this->name;
     }
-
 
     /**
      * @return string sql
@@ -64,7 +56,6 @@ class Index
             . ' (' . join(',', array_map('Roycedev\DbCli\Schema::quoteIdentifier', $this->columns)) . ')');
     }
 
-
     /**
      * @return string[]
      */
@@ -73,7 +64,8 @@ class Index
         return $this->columns;
     }
 
-    public function getType() {
-	return $this->type;
+    public function getType()
+    {
+        return $this->type;
     }
 }

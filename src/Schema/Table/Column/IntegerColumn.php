@@ -1,9 +1,4 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    March 2015
- */
 
 namespace Roycedev\DbCli\Schema\Table\Column;
 
@@ -26,7 +21,10 @@ class IntegerColumn extends Column
     public function __construct(
         $name,
         $description = '',
-        $allowNull = false, $unique = false, $charset = "", $collate = "",
+        $allowNull = false,
+        $unique = false,
+        $charset = "",
+        $collate = "",
         $size = '',
         $digits = self::DEFAULT_DIGITS,
         $unsigned = ""

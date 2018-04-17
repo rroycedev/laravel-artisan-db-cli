@@ -1,16 +1,11 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    March 2015
- */
 
 namespace Roycedev\DbCli\Schema;
 
 use Roycedev\DbCli\Schema;
 use Roycedev\DbCli\Schema\Table\Column;
 use Roycedev\DbCli\Schema\Table\Index;
-use  Roycedev\DbCli\Schema\Table\Index\ForeignKey;
+use Roycedev\DbCli\Schema\Table\Index\ForeignKey;
 
 /**
  * Class Table
@@ -27,10 +22,10 @@ class Table implements \IteratorAggregate, TableInterface
     private $description;
 
     /** @var Column[] */
-    private $column = [ ];
+    private $column = [];
 
     /** @var string[] */
-    private $columnMap = [ ];
+    private $columnMap = [];
 
     /** @var Index[] */
     private $index = array();
@@ -47,7 +42,6 @@ class Table implements \IteratorAggregate, TableInterface
     /** @var string */
     private $collate = "";
 
-
     /**
      * @param $name        string name of the table (must be a valid SQL identifier)
      * @param $description string textual description of the table, which may
@@ -56,13 +50,12 @@ class Table implements \IteratorAggregate, TableInterface
      */
     public function __construct($name, $description = '', $engine = '', $charset = '', $collate = '')
     {
-        $this->name        = $name;
+        $this->name = $name;
         $this->description = $description;
-	$this->engine 	   = $engine;
-	$this->charset     = $charset;
-	$this->collate     = $collate;
+        $this->engine = $engine;
+        $this->charset = $charset;
+        $this->collate = $collate;
     }
-
 
     /**
      * get the name of this table
@@ -72,7 +65,6 @@ class Table implements \IteratorAggregate, TableInterface
     {
         return $this->name;
     }
-
 
     /**
      * get the textual description of this table
@@ -85,7 +77,7 @@ class Table implements \IteratorAggregate, TableInterface
 
     /**
      * get the engine of this table
-     * @return string engine 
+     * @return string engine
      */
     public function getEngine()
     {
@@ -94,7 +86,7 @@ class Table implements \IteratorAggregate, TableInterface
 
     /**
      * get the character set of this table
-     * @return string charset 
+     * @return string charset
      */
     public function getCharacterset()
     {
@@ -119,7 +111,6 @@ class Table implements \IteratorAggregate, TableInterface
         return new \ArrayIterator($this->column);
     }
 
-
     /**
      * implements array iteration over tables
      * @return \ArrayIterator
@@ -128,7 +119,6 @@ class Table implements \IteratorAggregate, TableInterface
     {
         return new \ArrayIterator($this->index);
     }
-
 
     /**
      * @param Column $column
@@ -142,7 +132,6 @@ class Table implements \IteratorAggregate, TableInterface
         return $this;
     }
 
-
     /**
      * @param string $name
      * @return Column
@@ -155,7 +144,6 @@ class Table implements \IteratorAggregate, TableInterface
 
         return $this->column[$name];
     }
-
 
     /**
      * @param int $index
@@ -173,7 +161,6 @@ class Table implements \IteratorAggregate, TableInterface
         return $this->column[$this->columnMap[$index]];
     }
 
-
     /**
      * @return int
      */
@@ -181,7 +168,6 @@ class Table implements \IteratorAggregate, TableInterface
     {
         return count($this->column);
     }
-
 
     /**
      * @param string $columnName
@@ -192,7 +178,6 @@ class Table implements \IteratorAggregate, TableInterface
         return isset($this->column[$columnName]);
     }
 
-
     /**
      * implements array iteration over tables
      * @return Column[] keyed by name
@@ -201,7 +186,6 @@ class Table implements \IteratorAggregate, TableInterface
     {
         return $this->column;
     }
-
 
     /**
      * @param Index $index
@@ -214,13 +198,14 @@ class Table implements \IteratorAggregate, TableInterface
         return $this;
     }
 
-    public function addForeignKey(ForeignKey $fk) 
+    public function addForeignKey(ForeignKey $fk)
     {
-	$this->foreignKey[$fk->getName()] = $fk;
+        $this->foreignKey[$fk->getName()] = $fk;
     }
 
-    public function getForeignKeys() {
-	return $this->foreignKey;
+    public function getForeignKeys()
+    {
+        return $this->foreignKey;
     }
 
     /**
@@ -236,7 +221,6 @@ class Table implements \IteratorAggregate, TableInterface
         return $this->index[$name];
     }
 
-
     /**
      * @return int
      */
@@ -244,7 +228,6 @@ class Table implements \IteratorAggregate, TableInterface
     {
         return count($this->index);
     }
-
 
     /**
      * @return string[]
@@ -254,7 +237,6 @@ class Table implements \IteratorAggregate, TableInterface
         return array_keys($this->index);
     }
 
-
     /**
      * @return Index[] keyed by name
      */
@@ -262,7 +244,6 @@ class Table implements \IteratorAggregate, TableInterface
     {
         return $this->index;
     }
-
 
     /**
      * render the table as DDL

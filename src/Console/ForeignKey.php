@@ -17,35 +17,35 @@ class ForeignKey
         $this->parentTableColumns = $parentTableColumns;
     }
 
-
     public function toText()
     {
-	$fkColumnList = $this->columnArrayToText($this->fkColumns);
-	$parentTableColList = $this->columnArrayToText($this->parentTableColumns);
+        $fkColumnList = $this->columnArrayToText($this->fkColumns);
+        $parentTableColList = $this->columnArrayToText($this->parentTableColumns);
 
-        return '            $table->foreign(' . $fkColumnList . ', \'' . $this->fkName . '\')->references(' . 
-		$parentTableColList . ')->on(\'' . $this->parentTableName . '\');';
+        $str = '            $table->foreign(' . $fkColumnList . ', \'' . $this->fkName . '\')->references(' .
+        $parentTableColList . ')->on(\'' . $this->parentTableName . '\');';
+
+        return $str;
     }
 
-    private function columnArrayToText($columns) 
+    private function columnArrayToText($columns)
     {
         $columnList = '[';
 
         $firstTime = true;
 
         foreach ($columns as $colName) {
-                if (!$firstTime) {
-                        $columnList .= ", ";
-                }
-                else {
-                        $firstTime = false;
-                }
+            if (!$firstTime) {
+                $columnList .= ", ";
+            } else {
+                $firstTime = false;
+            }
 
-                $columnList .= "'" . $colName . "'";
+            $columnList .= "'" . $colName . "'";
         }
 
         $columnList .= "]";
 
-	return $columnList;
+        return $columnList;
     }
 }

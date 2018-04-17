@@ -1,9 +1,5 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    11 2016
- */
+
 namespace Roycedev\DbCli\Schema;
 
 use Roycedev\DbCli\Schema\Table\Column;

@@ -1,16 +1,11 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    March 2015
- */
 
 namespace Roycedev\DbCli\Schema\Renderer;
 
-use Roycedev\DbCli\Schema\Table\Column;
 use Roycedev\DbCli\Schema;
-use Roycedev\DbCli\Schema\TableInterface;
 use Roycedev\DbCli\SchemaInterface;
+use Roycedev\DbCli\Schema\TableInterface;
+use Roycedev\DbCli\Schema\Table\Column;
 
 /**
  * Class AlterTableSQL
@@ -23,17 +18,15 @@ class AlterTableSQL
     const STATEMENT_SUFFIX = ";\n";
 
     /** @var array */
-    private $ignoredTables = [ ];
-
+    private $ignoredTables = [];
 
     /**
      * @param array $ignoreTables
      */
-    public function __construct($ignoreTables = [ ])
+    public function __construct($ignoreTables = [])
     {
         $this->ignoredTables = $ignoreTables;
     }
-
 
     /**
      * return a set of sql statements that turn $copy into $master
@@ -46,7 +39,7 @@ class AlterTableSQL
         $sql = array();
 
         $masterTables = $this->getTableNames($master);
-        $copyTables   = $this->getTableNames($copy);
+        $copyTables = $this->getTableNames($copy);
 
         // all tables not in $copy will be created
         foreach (array_diff($masterTables, $copyTables) as $tableName) {
@@ -60,15 +53,18 @@ class AlterTableSQL
 
         // tables in both will be compared field by field, index by index
         foreach (array_intersect($masterTables, $copyTables) as $tableName) {
-            $sql = array_merge($sql,
-                $this->compareTableColumns($master->getTable($tableName), $copy->getTable($tableName)));
-            $sql = array_merge($sql,
-                $this->upgradeIndexes($master->getTable($tableName), $copy->getTable($tableName)));
+            $sql = array_merge(
+                $sql,
+                $this->compareTableColumns($master->getTable($tableName), $copy->getTable($tableName))
+            );
+            $sql = array_merge(
+                $sql,
+                $this->upgradeIndexes($master->getTable($tableName), $copy->getTable($tableName))
+            );
         }
 
         return $sql;
     }
-
 
     /**
      * Compare the two sets of columns in $master and $copy
@@ -80,7 +76,7 @@ class AlterTableSQL
     public function compareTableColumns(TableInterface $master, TableInterface $copy)
     {
         $masterColumnCount = $master->getColumnCount();
-        $copyColumnCount   = $copy->getColumnCount();
+        $copyColumnCount = $copy->getColumnCount();
 
         $sql = array();
         for ($masterColumnNumber = $copyColumnNumber = 0; $masterColumnNumber < $masterColumnCount; $masterColumnNumber++) {
@@ -102,7 +98,7 @@ class AlterTableSQL
                     $sql = array_merge($sql, $this->deleteColumnsBetween($copyColumnNumber, $c, $copy));
                 }
                 $copyColumnNumber = $c + 1;
-                $found            = true;
+                $found = true;
             }
             if (!$found) {
                 $sql[] = $this->addColumn($master, $masterColumnNumber);
@@ -113,7 +109,6 @@ class AlterTableSQL
 
         return $sql;
     }
-
 
     /**
      * add a new column to the table
@@ -129,9 +124,8 @@ class AlterTableSQL
         return 'alter table ' . Schema::quoteIdentifier($master->getName())
         . ' add column '
         . $master->getColumnNumber($masterColumnNumber)->toSQL()
-        . ' ' . $location;
+            . ' ' . $location;
     }
-
 
     /**
      * return SQL to change $copy into $master
@@ -145,7 +139,6 @@ class AlterTableSQL
         return 'alter table ' . Schema::quoteIdentifier($table->getName()) . ' change ' . Schema::quoteIdentifier($copy->getName()) . ' ' . $master->toSQL();
     }
 
-
     /**
      * return alter table sql to delete the selected columns
      * @param int   $start  starting column number to delete
@@ -158,12 +151,11 @@ class AlterTableSQL
         $sql = array();
         for ($i = $start; $i < $finish; $i++) {
             $sql[] = 'alter table ' . Schema::quoteIdentifier($copy->getName())
-                . ' drop column ' . Schema::quoteIdentifier($copy->getColumnNumber($i)->getName());
+            . ' drop column ' . Schema::quoteIdentifier($copy->getColumnNumber($i)->getName());
         }
 
         return $sql;
     }
-
 
     /**
      * get the names of all the tables in $db
@@ -175,7 +167,6 @@ class AlterTableSQL
         return array_diff($db->getTableNames(), $this->ignoredTables);
     }
 
-
     /**
      * see which indexes need to be added / deleted.
      * @param TableInterface $master
@@ -185,19 +176,19 @@ class AlterTableSQL
     public function upgradeIndexes(TableInterface $master, TableInterface $copy)
     {
         $masterIndexes = $master->getIndexNames();
-        $copyIndexes   = $copy->getIndexNames();
-        $sql           = array();
+        $copyIndexes = $copy->getIndexNames();
+        $sql = array();
 
         // all indexes not in $copy will be created
         foreach (array_diff($masterIndexes, $copyIndexes) as $name) {
             $sql[] = 'alter table ' . Schema::quoteIdentifier($copy->getName())
-                . ' add ' . $master->getIndexByName($name)->toSQL();
+            . ' add ' . $master->getIndexByName($name)->toSQL();
         }
 
         // all indexes not in $master will be dropped
         foreach (array_diff($copyIndexes, $masterIndexes) as $name) {
             $sql[] = 'alter table ' . Schema::quoteIdentifier($copy->getName())
-                . ' drop index ' . Schema::quoteIdentifier($name);
+            . ' drop index ' . Schema::quoteIdentifier($name);
         }
 
         // indexes in both will be compared: if any change, they will be dropped and re-created
@@ -207,9 +198,9 @@ class AlterTableSQL
             }
 
             $sql[] = 'alter table ' . Schema::quoteIdentifier($copy->getName())
-                . ' drop index ' . Schema::quoteIdentifier($name);
+            . ' drop index ' . Schema::quoteIdentifier($name);
             $sql[] = 'alter table ' . Schema::quoteIdentifier($copy->getName())
-                . ' add ' . $master->getIndexByName($name)->toSQL();
+            . ' add ' . $master->getIndexByName($name)->toSQL();
         }
 
         return $sql;

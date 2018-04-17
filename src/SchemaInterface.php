@@ -1,30 +1,9 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    11 2016
- */
+
 namespace Roycedev\DbCli;
 
 use Roycedev\DbCli\Schema\TableInterface;
 
-/**
- * Models an SQL database in memory. Used to hold the parsed results of
- * a real DDL statement to generate a database, or from a PHP Schema definition file
- * which has code like this:
- *
- *   function GetDatabaseSchema( $database )
- *   {
- *       $database->addTable( 'card', 'Software requirements' )
- *           ->addPrimaryKeyColumn   ()
- *           ->addNestedSetColumns   ()
- *           ->addStringColumn       ( 'title'        , 100, 'Short title for the requirement' )
- *           ->addTextColumn         ( 'description'       , 'Longer description of how this could be implemented' )
- *           ->addTextColumn         ( 'tests'             , 'Acceptance tests and use-cases' )
- *           ->addLastModifiedColumn ();
- *   }
- *
- */
 interface SchemaInterface
 {
     /**

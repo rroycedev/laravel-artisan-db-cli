@@ -14,5 +14,4 @@ class MediumIntDbMigrationColumnFormatter extends IntDbMigrationColumnFormatter
 
         return parent::toText();
     }
-
 }

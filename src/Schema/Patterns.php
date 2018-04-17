@@ -37,7 +37,6 @@ return [
         'timestamp' => '\Roycedev\DbCli\Schema\Table\Column\TimestampColumn',
         'varchar\s*\((\d+)\)(.*)' => '\Roycedev\DbCli\Schema\Table\Column\StringColumn',
         'char\s*\((\d+)\)(.*)' => '\Roycedev\DbCli\Schema\Table\Column\CharColumn',
-//        'varchar\s*\((\d+)\)' => '\Roycedev\DbCli\Schema\Table\Column\StringColumn',
         'enum\s*\(\s*([^\)]*)\s*\) ' => '\Roycedev\DbCli\Schema\Table\Column\EnumerationColumn',
         'set\s*\(\s*(.*)\s*\) ' => '\Roycedev\DbCli\Schema\Table\Column\SetColumn',
         'float\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)' => '\Roycedev\DbCli\Schema\Table\Column\FloatColumn',

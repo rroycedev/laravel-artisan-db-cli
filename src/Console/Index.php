@@ -6,7 +6,7 @@ class Index
 {
     public $indexName = "";
     public $indexColumns = array();
-    public $indexType = ""; 
+    public $indexType = "";
 
     public function __construct($indexName, $indexColumns, $indexType)
     {
@@ -17,39 +17,38 @@ class Index
 
     public function toText()
     {
-	$columnList = '[';
+        $columnList = '[';
 
-	$firstTime = true;
+        $firstTime = true;
 
-	foreach ($this->indexColumns as $colName) {
-		if (!$firstTime) {
-			$columnList .= ", ";
-		}
-		else {
-			$firstTime = false;
-		}
+        foreach ($this->indexColumns as $colName) {
+            if (!$firstTime) {
+                $columnList .= ", ";
+            } else {
+                $firstTime = false;
+            }
 
-		$columnList .= "'" . $colName . "'";
-	}
+            $columnList .= "'" . $colName . "'";
+        }
 
-	$columnList .= "]";
+        $columnList .= "]";
 
-	$methodName = "";
+        $methodName = "";
 
-	switch ($this->indexType) {
-	case 'Primary':
-		$methodName = 'primary';
-		break;
-	case 'Unique':
-		$methodName = 'unique';
-		break;
-	case 'Non-Unique':
-		$methodName = 'index';
-		break;
-	default:
-		throw new \Exception("Invalid index type  '" . $this->indexType . "'");
-	}
+        switch ($this->indexType) {
+            case 'Primary':
+                $methodName = 'primary';
+                break;
+            case 'Unique':
+                $methodName = 'unique';
+                break;
+            case 'Non-Unique':
+                $methodName = 'index';
+                break;
+            default:
+                throw new \Exception("Invalid index type  '" . $this->indexType . "'");
+        }
 
-	return '            $table->' . $methodName . '(' . $columnList . ', \'' . $this->indexName . '\');';
+        return '            $table->' . $methodName . '(' . $columnList . ', \'' . $this->indexName . '\');';
     }
 }

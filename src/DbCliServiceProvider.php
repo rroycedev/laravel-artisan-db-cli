@@ -2,11 +2,7 @@
 
 namespace Roycedev\DbCli;
 
-use Illuminate\Container\Container;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
-use Roycedev\DbCli\Console\MakeDbTableCommand;
 use Roycedev\DbCli\Console\MakeMigrationCommand;
 
 class DbCliServiceProvider extends ServiceProvider

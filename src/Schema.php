@@ -1,39 +1,16 @@
 <?php
-/**
- * @file
- * @author  Lightly Salted Software Ltd
- * @date    6 March 2015
- */
 
 namespace Roycedev\DbCli;
 
 use Roycedev\DbCli\Schema\TableInterface;
 
-/**
- * Models an SQL database in memory. Used to hold the parsed results of
- * a real DDL statement to generate a database, or from a PHP Schema definition file
- * which has code like this:
- *
- *   function GetDatabaseSchema( $database )
- *   {
- *       $database->addTable( 'card', 'Software requirements' )
- *           ->addPrimaryKeyColumn   ()
- *           ->addNestedSetColumns   ()
- *           ->addStringColumn       ( 'title'        , 100, 'Short title for the requirement' )
- *           ->addTextColumn         ( 'description'       , 'Longer description of how this could be implemented' )
- *           ->addTextColumn         ( 'tests'             , 'Acceptance tests and use-cases' )
- *           ->addLastModifiedColumn ();
- *   }
- *
- */
 class Schema implements \IteratorAggregate, SchemaInterface
 {
     const BACKTICK = '`';
     const QUOTE = "'";
 
     /** @var TableInterface[] */
-    private $table = [ ];
-
+    private $table = [];
 
     /**
      * Add a new table to the database
@@ -45,7 +22,6 @@ class Schema implements \IteratorAggregate, SchemaInterface
         return $this->table[$table->getName()] = $table;
     }
 
-
     /**
      * return the number of tables added by add()
      * @return integer
@@ -54,7 +30,6 @@ class Schema implements \IteratorAggregate, SchemaInterface
     {
         return count($this->table);
     }
-
 
     /**
      * @brief return the table
@@ -70,7 +45,6 @@ class Schema implements \IteratorAggregate, SchemaInterface
         return $this->table[$name];
     }
 
-
     /**
      * @brief return the full set of tables
      * @return TableInterface[] keyed on table name
@@ -79,7 +53,6 @@ class Schema implements \IteratorAggregate, SchemaInterface
     {
         return $this->table;
     }
-
 
     /**
      * names of all the tables
@@ -90,7 +63,6 @@ class Schema implements \IteratorAggregate, SchemaInterface
         return array_keys($this->table);
     }
 
-
     /**
      * implements array iteration over tables
      * @return \ArrayIterator
@@ -99,7 +71,6 @@ class Schema implements \IteratorAggregate, SchemaInterface
     {
         return new \ArrayIterator($this->table);
     }
-
 
     /**
      * return the $id quoted with BACKTICK
@@ -115,32 +86,29 @@ class Schema implements \IteratorAggregate, SchemaInterface
         return self::BACKTICK . $id . self::BACKTICK;
     }
 
-
     /**
      * @param string $text
      * @return string quoted $text
      */
-    static function quoteDescription($text)
+    public static function quoteDescription($text)
     {
         return self::QUOTE . str_replace(self::QUOTE, self::QUOTE . self::QUOTE, $text) . self::QUOTE;
     }
 
-
     /**
      * @param string $text
      * @return string quoted $text
      */
-    static function quoteEnumValue($text)
+    public static function quoteEnumValue($text)
     {
         return self::quoteDescription($text);
     }
-
 
     /**
      * @param string $value
      * @return string
      */
-    static public function unQuote($value)
+    public static function unQuote($value)
     {
         if (substr($value, 0, 1) == substr($value, -1) && substr($value, 0, 1) == '"') {
             $value = substr($value, 1, -1);
@@ -152,7 +120,7 @@ class Schema implements \IteratorAggregate, SchemaInterface
             $value = substr($value, 1, -1);
         }
         $value = str_replace("''", "'", $value);
-	$value = str_replace("`", "", $value);
+        $value = str_replace("`", "", $value);
 
         return trim($value);
     }

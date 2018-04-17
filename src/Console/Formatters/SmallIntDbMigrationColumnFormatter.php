@@ -14,5 +14,4 @@ class SmallIntDbMigrationColumnFormatter extends IntDbMigrationColumnFormatter
 
         return parent::toText();
     }
-
 }
