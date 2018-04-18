@@ -6,8 +6,19 @@ use Roycedev\DbCli\Console\DbMigrationColumnFormatter;
 
 abstract class BasicDbMigrationColumnFormatter extends DbMigrationColumnFormatter
 {
+    /**
+     * $typeMethodName
+     *
+     * @var string
+     */
     protected $typeMethodName = "";
 
+    /**
+     * Returns the Laravel database migration script string that represents
+     * a basic column
+     *
+     * @return string
+     */
     public function toText()
     {
         $txt = '            $table->' . $this->typeMethodName . '(\'' . $this->column->colName . '\')';

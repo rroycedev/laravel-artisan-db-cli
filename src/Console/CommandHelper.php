@@ -2,8 +2,29 @@
 
 namespace Roycedev\DbCli\Console;
 
+/**
+ * CommandHelper
+ * Insert description here
+ *
+ * @category
+ * @package
+ * @author
+ * @copyright
+ * @license
+ * @version
+ * @link
+ * @see
+ * @since
+ */
 class CommandHelper
 {
+    /**
+     * Returns true/false if the data type supports auto increment
+     *
+     * @param $dataType
+     *
+     * @return boolean
+     */
     public static function dataTypeSupportsAutoIncrement($dataType)
     {
         switch ($dataType) {
@@ -18,6 +39,13 @@ class CommandHelper
         }
     }
 
+    /**
+     * Returns true/false if the data type supports the length attribute
+     *
+     * @param $dataType
+     *
+     * @return boolean
+     */
     public static function dataTypeSupportsLength($dataType)
     {
         echo "Checking data type [$dataType] for support of length\n";
@@ -45,6 +73,13 @@ class CommandHelper
         }
     }
 
+    /**
+     * Returns true/false if the data type supports decimal places
+     *
+     * @param $dataType
+     *
+     * @return boolean
+     */
     public static function dataTypeSupportsDecimalPlaces($dataType)
     {
         switch ($dataType) {
@@ -59,6 +94,13 @@ class CommandHelper
         }
     }
 
+    /**
+     * Returns true/false if the data type supports unsigned
+     *
+     * @param $dataType
+     *
+     * @return boolean
+     */
     public static function dataTypeSupportsUnsigned($dataType)
     {
         switch ($dataType) {
@@ -78,6 +120,13 @@ class CommandHelper
         }
     }
 
+    /**
+     * Returns true/false if the data type supports charset
+     *
+     * @param $dataType
+     *
+     * @return boolean
+     */
     public static function dataTypeSupportsCharset($dataType)
     {
         switch ($dataType) {

@@ -6,8 +6,19 @@ use Roycedev\DbCli\Console\DbMigrationColumnFormatter;
 
 class IntDbMigrationColumnFormatter extends DbMigrationColumnFormatter
 {
+    /**
+     * $typeMethodName
+     *
+     * @var string
+     */
     protected $typeMethodName = "integer";
 
+    /**
+     * Returns the Laravel database migration script string that represents
+     * a int column
+     *
+     * @return string
+     */
     public function toText()
     {
         if ($this->column->autoIncrement && $this->typeMethodName == "integer") {

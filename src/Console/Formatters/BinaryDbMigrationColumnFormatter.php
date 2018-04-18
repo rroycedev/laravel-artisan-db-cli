@@ -6,8 +6,19 @@ use Roycedev\DbCli\Console\DbMigrationColumnFormatter;
 
 class BinaryDbMigrationColumnFormatter extends DbMigrationColumnFormatter
 {
+    /**
+     * $typeMethodName
+     *
+     * @var string
+     */
     protected $typeMethodName = "binary";
 
+    /**
+     * Returns the Laravel database migration script string that represents
+     * a binary column
+     *
+     * @return string
+     */
     public function toText()
     {
         $txt = '            $table->' . $this->typeMethodName . '(\'' . $this->column->colName . '\', ' . $this->column->length . ')';

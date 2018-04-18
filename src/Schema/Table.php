@@ -198,11 +198,37 @@ class Table implements \IteratorAggregate, TableInterface
         return $this;
     }
 
+    /**
+     * addForeignKey
+     * Insert description here
+     *
+     * @param ForeignKey
+     * @param $fk
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     public function addForeignKey(ForeignKey $fk)
     {
         $this->foreignKey[$fk->getName()] = $fk;
     }
 
+    /**
+     * getForeignKeys
+     * Insert description here
+     *
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     public function getForeignKeys()
     {
         return $this->foreignKey;

@@ -4,11 +4,41 @@ namespace Roycedev\DbCli\Console;
 
 class ForeignKey
 {
-    public $fkName;
-    public $fkColumns;
-    public $parentTableName;
-    public $parentTableColumns;
+    /**
+     * Foreign key name
+     *
+     * @var string
+     */
+    public $fkName = "";
+    /**
+     * Foreign key columns
+     *
+     * @var array
+     */
+    public $fkColumns = array();
+    /**
+     * Parent table name
+     *
+     * @var string
+     */
+    public $parentTableName = "";
+    /**
+     * Parent table columns
+     *
+     * @var array
+     */
+    public $parentTableColumns = array();
 
+    /**
+     * Create new instance of ForeignKey
+     *
+     * @param string $fkName
+     * @param array $fkColumns
+     * @param string $parentTableName
+     * @param array $parentTableColumns
+     *
+     * @return void
+     */
     public function __construct($fkName, $fkColumns, $parentTableName, $parentTableColumns)
     {
         $this->fkName = $fkName;
@@ -17,6 +47,12 @@ class ForeignKey
         $this->parentTableColumns = $parentTableColumns;
     }
 
+    /**
+     * Returns the laravel artisan command text
+     *
+     *
+     * @return string
+     */
     public function toText()
     {
         $fkColumnList = $this->columnArrayToText($this->fkColumns);
@@ -28,6 +64,12 @@ class ForeignKey
         return $str;
     }
 
+    /**
+     * Returns the JSON representation of array of column names
+     *
+     * @param array $columns
+     * @return string
+     */
     private function columnArrayToText($columns)
     {
         $columnList = '[';

@@ -6,8 +6,19 @@ use Roycedev\DbCli\Console\DbMigrationColumnFormatter;
 
 class EnumDbMigrationColumnFormatter extends DbMigrationColumnFormatter
 {
+    /**
+     * $typeMethodName
+     *
+     * @var string
+     */
     protected $typeMethodName = "enum";
 
+    /**
+     * Returns the Laravel database migration script string that represents
+     * a enum column
+     *
+     * @return string
+     */
     public function toText()
     {
         $txt = '            $table->' . $this->typeMethodName . '(\'' . $this->column->colName . '\', [' . $this->column->enumValues . '])';

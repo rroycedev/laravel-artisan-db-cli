@@ -2,6 +2,20 @@
 
 namespace Roycedev\DbCli\Console;
 
+/**
+ * Column
+ * Insert description here.
+ *
+ * @author
+ * @copyright
+ * @license
+ *
+ * @version
+ *
+ * @see
+ * @see
+ * @since
+ */
 class Column
 {
     public $colName;
@@ -16,6 +30,23 @@ class Column
     public $defaultValue;
     public $comment;
 
+    /**
+     * Create a new Column instance
+     *
+     * @param $colName
+     * @param $dataType
+     * @param $length
+     * @param $decimalPlaces
+     * @param $unsigned
+     * @param $allowNulls
+     * @param $charset
+     * @param $collation
+     * @param $autoIncrement
+     * @param $defaultValue
+     * @param $comment
+     *
+     * @return
+     */
     public function __construct(
         $colName,
         $dataType,

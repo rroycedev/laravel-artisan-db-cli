@@ -112,38 +112,44 @@ class MakeMigrationCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle()
     {
         $type = trim(strtolower($this->option('type')));
 
-        if ($type == "") {
+        if ("" == $type) {
             $this->info('You must specify the option --type');
             return;
         }
 
-        if ($type != 'createtable' && $type != 'altertable') {
+        if ('createtable' != $type && 'altertable' != $type) {
             $this->info('Invalid value \'' . $type . '\' for option --type');
             return;
         }
 
         $fromDDLFilename = trim($this->option('filename'));
 
-        if ($fromDDLFilename == "") {
+        if ("" == $fromDDLFilename) {
             $this->handleInteractive($type);
         } else {
             $this->handleFromDDL($type, $fromDDLFilename);
         }
     }
 
+    /**
+     * Returns one or more table create DDL from a file
+     *
+     * @param  string $ddlFilename Filename containing the DDL
+     * @return array  An array of createDDLs
+     */
     private function getCreateDDLFromFile($ddlFilename)
     {
         $lines = file($ddlFilename);
 
         $i = 0;
 
-        $createDDLStatements = array();
+        $createDDLStatements = [];
 
         while (true) {
             if ($i > count($lines) - 1) {
@@ -154,7 +160,7 @@ class MakeMigrationCommand extends Command
 
             $thisLine = trim($line);
 
-            if ($thisLine == "") {
+            if ("" == $thisLine) {
                 $i++;
                 continue;
             }
@@ -189,6 +195,13 @@ class MakeMigrationCommand extends Command
         return $createDDLStatements;
     }
 
+    /**
+     * Processes input from a file
+     *
+     * @param  string $type        The type of data migration ('createtable', 'altertable')
+     * @param  string $ddlFilename The filename containing the DDL
+     * @return void
+     */
     private function handleFromDDL($type, $ddlFilename)
     {
         if (!file_exists($ddlFilename)) {
@@ -198,13 +211,13 @@ class MakeMigrationCommand extends Command
 
         $createDDLStatements = $this->getCreateDDLFromFile($ddlFilename);
 
-        $tables = array();
+        $tables = [];
 
         foreach ($createDDLStatements as $createDDL) {
             $tables[] = $this->getTableFromDDL($createDDL);
         }
 
-        $orderedTables = array();
+        $orderedTables = [];
 
         //  Add tables without foreign keys first
 
@@ -231,6 +244,14 @@ class MakeMigrationCommand extends Command
         }
     }
 
+    /**
+     * Returns a parsed "table" object based on the create DDL in '$createDDL'
+     *
+     * @param string $createDDL  The table's create DDL
+     *
+     * @return Roycedev\DbCli\Schema\Table
+     *
+     */
     private function getTableFromDDL($createDDL)
     {
         $parsedSchema = new Schema();
@@ -242,6 +263,14 @@ class MakeMigrationCommand extends Command
         return $table;
     }
 
+    /**
+     * returns the migration name based on the table name
+     *
+     * @param string $tableName  Table name
+     *
+     * @return string
+     *
+     */
     private function formatMigrationName($tableName)
     {
         $parts = explode("_", $tableName);
@@ -255,6 +284,20 @@ class MakeMigrationCommand extends Command
         return $migrationName;
     }
 
+    /**
+     * processTable
+     * Insert description here
+     *
+     * @param $table
+     * @param $tableNum
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     private function processTable($table, $tableNum)
     {
         $migrationName = $this->formatMigrationName($table->getName());
@@ -330,7 +373,7 @@ class MakeMigrationCommand extends Command
 
                     $colSize = $column->getSize();
 
-                    if ($colSize == "big") {
+                    if ("big" == $colSize) {
                         $tableDef .= '              $table->bigIncrements(\'' . $colName . '\')' . $clauses . ';' . "\n";
                     } else {
                         $tableDef .= '              $table->increments(\'' . $colName . '\')' . $clauses . ';' . "\n";
@@ -342,7 +385,7 @@ class MakeMigrationCommand extends Command
 
                     $colSize = $column->getSize();
 
-                    if ($colSize == "big") {
+                    if ("big" == $colSize) {
                         $tableDef .= '              $table->bigIncrements(\'' . $colName . '\')->unsigned()' . $clauses . ';' . "\n";
                     } else {
                         $tableDef .= '              $table->increments(\'' . $colName . '\')->unsigned()' . $clauses . ';' . "\n";
@@ -376,7 +419,7 @@ class MakeMigrationCommand extends Command
                 case "IntegerColumn":
                     $colSize = $column->getSize();
 
-                    if ($colSize == "") {
+                    if ("" == $colSize) {
                         $tableDef .= '              $table->integer(\'' . $colName . '\')' . $clauses . ';' . "\n";
                     } else {
                         $tableDef .= '              $table->' . $colSize . 'Integer(\'' . $colName . '\')' . $clauses . ';' . "\n";
@@ -385,7 +428,7 @@ class MakeMigrationCommand extends Command
                 case "UnsignedIntegerColumn":
                     $colSize = $column->getSize();
 
-                    if ($colSize == "") {
+                    if ("" == $colSize) {
                         $tableDef .= '              $table->integer(\'' . $colName . '\')->unsigned()' . $clauses . ';' . "\n";
                     } else {
                         $tableDef .= '              $table->' . $colSize . 'Integer(\'' . $colName . '\')->unsigned()' . $clauses . ';' . "\n";
@@ -424,7 +467,7 @@ class MakeMigrationCommand extends Command
                 case "TextColumn":
                     $colSize = $column->getSize();
 
-                    if ($colSize == "") {
+                    if ("" == $colSize) {
                         $tableDef .= '              $table->text(\'' . $colName . '\')' . $clauses . ';' . "\n";
                     } else {
                         $tableDef .= '              $table->' . $colSize . 'Text(\'' . $colName . '\')' . $clauses . ';' . "\n";
@@ -481,7 +524,7 @@ class MakeMigrationCommand extends Command
             if ($index->getType() == "unique") {
                 $tableDef .= '              $table->unique(' . $indexColumn . ', \'' . $indexName . '\');' . "\n";
             } elseif ($index->getType() == "primary") {
-                if ($autoIncrementColumn == "") {
+                if ("" == $autoIncrementColumn) {
                     $tableDef .= '              $table->primary(' . $indexColumn . ', \'pk_index\');' . "\n";
                 }
             } else {
@@ -500,11 +543,11 @@ class MakeMigrationCommand extends Command
             $onDeleteClause = "";
             $onUpdateClause = "";
 
-            if ($onDelete != "") {
+            if ("" != $onDelete) {
                 $onDeleteClause = '->onDelete(\'' . $onDelete . '\')';
             }
 
-            if ($onUpdate != "") {
+            if ("" != $onUpdate) {
                 $onUpdateClause = '->onUpdate(\'' . $onUpdate . '\')';
             }
 
@@ -528,10 +571,33 @@ class MakeMigrationCommand extends Command
         $this->info("Migration script written to $filename");
     }
 
-    protected function parseDDL($ddl)
-    {
-    }
+    /**
+     * parseDDL
+     * Insert description here
+     *
+     * @param $ddl
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
+    protected function parseDDL($ddl) {}
 
+    /**
+     * getOptions
+     * Insert description here
+     *
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     protected function getOptions()
     {
         return [
@@ -541,6 +607,19 @@ class MakeMigrationCommand extends Command
         ];
     }
 
+    /**
+     * handleInteractive
+     * Insert description here
+     *
+     * @param $type
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     private function handleInteractive($type)
     {
         $this->info("In order to generate a database migration script for a table, you will be asked to enter information\n");
@@ -548,20 +627,20 @@ class MakeMigrationCommand extends Command
         while (true) {
             $tableName = trim($this->ask('Table name'));
 
-            if ($tableName != "") {
+            if ("" != $tableName) {
                 break;
             }
         }
 
         $columns = $this->getColumnsFromInput();
 
-        $indexes = array();
+        $indexes = [];
 
         if ($this->confirm('Are there any indexes to define', true)) {
             $indexes = $this->getIndexesFromInput($columns);
         }
 
-        $foreignKeys = array();
+        $foreignKeys = [];
 
         if ($this->confirm('Are there any foreign keys to define', true)) {
             $foreignKeys = $this->getForeignKeysFromInput($columns);
@@ -574,6 +653,23 @@ class MakeMigrationCommand extends Command
         $this->generateMigration($tableName, $columns, $indexes, $foreignKeys, $tableComment);
     }
 
+    /**
+     * generateMigration
+     * Insert description here
+     *
+     * @param $tableName
+     * @param $columns
+     * @param $indexes
+     * @param $foreignKeys
+     * @param $tableComment
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     private function generateMigration($tableName, $columns, $indexes, $foreignKeys, $tableComment)
     {
         $tableDef = "";
@@ -604,7 +700,7 @@ class MakeMigrationCommand extends Command
 
         $outputText = str_replace("[[TABLEDEF]]", $tableDef, $outputText);
 
-        if ($tableComment != "") {
+        if ("" != $tableComment) {
             echo "Table comment [$tableComment\\n";
 
             $outputText = str_replace("[[TABLECOMMENT]]", "DB::statement('ALTER TABLE `$tableName` COMMENT = \"$tableComment\"');", $outputText);
@@ -617,12 +713,23 @@ class MakeMigrationCommand extends Command
         file_put_contents($filename, $outputText);
 
         $this->info("Migration script written to $filename");
-
     }
 
+    /**
+     * getColumnsFromInput
+     * Insert description here
+     *
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     private function getColumnsFromInput()
     {
-        $columns = array();
+        $columns = [];
 
         while (true) {
             $column = $this->getColumnFromInput(count($columns) + 1);
@@ -640,9 +747,22 @@ class MakeMigrationCommand extends Command
         return $columns;
     }
 
+    /**
+     * getIndexesFromInput
+     * Insert description here
+     *
+     * @param $columns
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     public function getIndexesFromInput($columns)
     {
-        $indexes = array();
+        $indexes = [];
 
         while (true) {
             $index = $this->getIndexFromInput(count($indexes) + 1, $columns);
@@ -660,9 +780,22 @@ class MakeMigrationCommand extends Command
         return $indexes;
     }
 
+    /**
+     * getForeignKeysFromInput
+     * Insert description here
+     *
+     * @param $columns
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     public function getForeignKeysFromInput($columns)
     {
-        $fks = array();
+        $fks = [];
 
         while (true) {
             $fk = $this->getForeignKeyFromInput(count($fks) + 1, $columns);
@@ -680,6 +813,20 @@ class MakeMigrationCommand extends Command
         return $fks;
     }
 
+    /**
+     * getForeignKeyFromInput
+     * Insert description here
+     *
+     * @param $fkNum
+     * @param $columns
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     private function getForeignKeyFromInput($fkNum, $columns)
     {
         $this->info("Please enter the information for foreign key $fkNum:\n");
@@ -687,19 +834,18 @@ class MakeMigrationCommand extends Command
         while (true) {
             $fkName = $this->ask('Foreign Key Name');
 
-            if ($fkName != "") {
+            if ("" != $fkName) {
                 break;
             }
         }
 
-        $fkColumns = array();
+        $fkColumns = [];
 
-        $fkColNames = array();
+        $fkColNames = [];
 
         foreach ($columns as $column) {
             $fkColNames[] = $column->colName;
         }
-
         while (true) {
             $fkColName = $this->choice("Foreign Key Column " . (count($fkColumns) + 1), $fkColNames);
 
@@ -709,16 +855,15 @@ class MakeMigrationCommand extends Command
                 break;
             }
         }
-
         while (true) {
             $parentTableName = $this->ask('References table name');
 
-            if ($parentTableName != "") {
+            if ("" != $parentTableName) {
                 break;
             }
         }
 
-        $refColumns = array();
+        $refColumns = [];
 
         while (true) {
             $refColName = $this->ask("References table column " . (count($refColumns) + 1));
@@ -733,6 +878,20 @@ class MakeMigrationCommand extends Command
         return new ForeignKey($fkName, $fkColumns, $parentTableName, $refColumns);
     }
 
+    /**
+     * getIndexFromInput
+     * Insert description here
+     *
+     * @param $indexNum
+     * @param $columns
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     private function getIndexFromInput($indexNum, $columns)
     {
         $this->info("Please enter the information for index $indexNum:\n");
@@ -740,19 +899,18 @@ class MakeMigrationCommand extends Command
         while (true) {
             $indexName = $this->ask('Index Name');
 
-            if ($indexName != "") {
+            if ("" != $indexName) {
                 break;
             }
         }
 
-        $indexColumns = array();
+        $indexColumns = [];
 
-        $indexColNames = array();
+        $indexColNames = [];
 
         foreach ($columns as $column) {
             $indexColNames[] = $column->colName;
         }
-
         while (true) {
             $indexColName = $this->choice("Index Column " . (count($indexColumns) + 1), $indexColNames);
 
@@ -768,6 +926,19 @@ class MakeMigrationCommand extends Command
         return new Index($indexName, $indexColumns, $indexType);
     }
 
+    /**
+     * getColumnFromInput
+     * Insert description here
+     *
+     * @param $colNum
+     *
+     * @return
+     *
+     * @access
+     * @static
+     * @see
+     * @since
+     */
     private function getColumnFromInput($colNum)
     {
         $length = 0;
@@ -782,12 +953,12 @@ class MakeMigrationCommand extends Command
         while (true) {
             $colName = $this->ask('Column Name');
 
-            if ($colName != "") {
+            if ("" != $colName) {
                 break;
             }
         }
 
-        $dataTypes = array();
+        $dataTypes = [];
 
         foreach ($this->columnDataTypeMapping as $dataType => $formatterClassName) {
             $dataTypes[] = $dataType;
@@ -817,7 +988,8 @@ class MakeMigrationCommand extends Command
         if (CommandHelper::dataTypeSupportsAutoIncrement($dataType)) {
             $autoIncrement = $this->confirm('Auto Increment', false);
 
-            if ($autoIncrement) { //  Set allow nulls to false if auto increment
+            if ($autoIncrement) {
+                //  Set allow nulls to false if auto increment
                 $allowNulls = false;
             }
         }

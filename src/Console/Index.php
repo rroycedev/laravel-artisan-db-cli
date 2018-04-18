@@ -4,10 +4,32 @@ namespace Roycedev\DbCli\Console;
 
 class Index
 {
+    /**
+     * $indexName Index name
+     *
+     * @var string
+     */
     public $indexName = "";
-    public $indexColumns = array();
+    /**
+     * $indexColumns Index columns
+     *
+     * @var array
+     */
+    public $indexColumns = [];
+    /**
+     * $indexType Index type ('primary', 'unique', 'index')
+     *
+     * @var string
+     */
     public $indexType = "";
 
+    /**
+     * Creates a new instance of Index
+     *
+     * @param string $indexName     Index name
+     * @param array  $indexColumns  Index columns
+     * @param string $indexType     Index type (primary, unique, index)
+     */
     public function __construct($indexName, $indexColumns, $indexType)
     {
         $this->indexName = $indexName;
@@ -15,6 +37,11 @@ class Index
         $this->indexType = $indexType;
     }
 
+    /**
+     * Returns the Laravel artisan command text
+     *
+     * @return string
+     */
     public function toText()
     {
         $columnList = '[';
